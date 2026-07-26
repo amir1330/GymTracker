@@ -1,0 +1,90 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onCancel()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ chart ? 'Edit' : 'Add' }} Chart</h2>
+      <button class="btn-close" (click)="onCancel()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="config-section">
+        <div class="form-group">
+          <label>Label</label>
+          <input type="text" [(ngModel)]="label" (ngModelChange)="onConfigChange()" placeholder="e.g. Bench Press Progress">
+        </div>
+
+        <div class="form-group">
+          <label>Metric</label>
+          <div class="radio-group">
+            <label *ngFor="let m of metrics" class="radio-label">
+              <input type="radio" [value]="m.value" [(ngModel)]="metric" name="metric" (ngModelChange)="onConfigChange()">
+              {{ m.label }}
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="showExercise">
+          <label>Exercise</label>
+          <select [(ngModel)]="exerciseId" name="exerciseId" (ngModelChange)="onConfigChange()">
+            <option [ngValue]="null" disabled>Select exercise</option>
+            <option *ngIf="showAllOption" [ngValue]="null">All exercises</option>
+            <option *ngFor="let ex of exercises" [ngValue]="ex.id">{{ ex.name }} ({{ ex.muscleGroup }})</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Period</label>
+          <div class="radio-group">
+            <label *ngFor="let p of periods" class="radio-label">
+              <input type="radio" [value]="p.value" [(ngModel)]="period" name="period" (ngModelChange)="onConfigChange()">
+              {{ p.label }}
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Chart Type</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" value="line" [(ngModel)]="chartType" name="chartType" (ngModelChange)="onConfigChange()">
+              Line
+            </label>
+            <label class="radio-label">
+              <input type="radio" value="bar" [(ngModel)]="chartType" name="chartType" (ngModelChange)="onConfigChange()">
+              Bar
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <h3>Preview</h3>
+        <div class="preview-chart">
+          <div *ngIf="previewLoading" class="preview-loading">Loading...</div>
+          <div *ngIf="!previewLoading && previewData.datasets[0]?.data?.length === 0" class="preview-empty">
+            No data for this configuration
+          </div>
+          <canvas *ngIf="!previewLoading && previewData.datasets[0]?.data?.length > 0"
+                  baseChart
+                  [type]="getChartType()"
+                  [data]="previewData"
+                  [options]="previewChartOptions">
+          </canvas>
+        </div>
+        <div class="preview-summary" *ngIf="previewSummary && previewSummary.current !== null">
+          <span class="summary-value">{{ previewSummary.current }}</span>
+          <span class="summary-change" [class]="previewSummary.trend">
+            {{ previewSummary.change }}
+            {{ previewSummary.trend === 'up' ? '↑' : previewSummary.trend === 'down' ? '↓' : '→' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+      <button class="btn btn-primary" (click)="onSave()" [disabled]="!label.trim() || (showExercise && !exerciseId)">
+        {{ chart ? 'Save Changes' : 'Add to Dashboard' }}
+      </button>
+    </div>
+  </div>
+</div>

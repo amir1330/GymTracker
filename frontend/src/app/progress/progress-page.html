@@ -1,0 +1,39 @@
+<div class="progress-page">
+  <div class="header">
+    <h2>Progress</h2>
+    <button class="btn btn-primary" (click)="openAddChart()">+ Add Chart</button>
+  </div>
+
+  @if (error) {
+    <div class="error">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <p>Loading...</p>
+  } @else if (charts.length === 0) {
+    <div class="empty-state">
+      <p class="empty">No charts yet. Add one to start tracking your progress.</p>
+    </div>
+  } @else {
+    <div class="dashboard-grid">
+      @for (chart of charts; track chart.id; let i = $index) {
+        <div class="chart-wrapper">
+          <app-chart-tile [chart]="chart"></app-chart-tile>
+          <div class="chart-controls">
+            <button class="btn btn-small" (click)="openEditChart(chart)">Edit</button>
+            <button class="btn btn-small" (click)="moveUp(chart, i)" [disabled]="i === 0">↑</button>
+            <button class="btn btn-small" (click)="moveDown(chart, i)" [disabled]="i === charts.length - 1">↓</button>
+            <button class="btn btn-small btn-danger" (click)="deleteChart(chart)">Delete</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<app-chart-editor
+  [chart]="editingChart"
+  [isOpen]="editorOpen"
+  (save)="saveChart($event)"
+  (cancel)="closeEditor()">
+</app-chart-editor>

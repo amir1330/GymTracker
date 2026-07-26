@@ -1,0 +1,26 @@
+<div class="chart-tile-card">
+  <div class="tile-header">
+    <div class="tile-info">
+      <h3 class="tile-label">{{ chart.label }}</h3>
+      <span class="tile-meta">{{ chart.metric }} · {{ chart.period }}</span>
+      <span *ngIf="chart.exerciseName" class="tile-meta"> · {{ chart.exerciseName }}</span>
+    </div>
+  </div>
+
+  <div class="tile-chart">
+    <canvas baseChart
+            [type]="getChartType()"
+            [data]="chartData"
+            [options]="chartOptions">
+    </canvas>
+  </div>
+
+  <div class="tile-summary" *ngIf="chart.data?.summary">
+    <span class="summary-value" *ngIf="chart.data.summary.current !== null">
+      {{ chart.data.summary.current }}
+    </span>
+    <span class="summary-change" [class]="trendClass">
+      {{ chart.data.summary.change }} {{ trendIcon }}
+    </span>
+  </div>
+</div>

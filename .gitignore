@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# OS / editors
+.DS_Store
+.vs/
+
+# Local PostgreSQL
+db/bin/
+db/data/
+db/run/
+db/logs/
+*.tar.gz

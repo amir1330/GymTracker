@@ -1,0 +1,43 @@
+.progress-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.chart-wrapper {
+  position: relative;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  justify-content: flex-end;
+}
+
+.chart-controls .btn {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.chart-controls .btn[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

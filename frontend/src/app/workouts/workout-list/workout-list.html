@@ -1,0 +1,44 @@
+<div class="workout-list">
+  <div class="header">
+    <h2>Log</h2>
+    <a routerLink="/workouts/new" class="btn">New Workout</a>
+  </div>
+
+  @if (error) {
+    <div class="error">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <p>Loading...</p>
+  } @else if (workouts.length === 0) {
+    <p class="empty">No workouts yet. Start logging your training.</p>
+  } @else {
+    <div class="workouts-list">
+      @for (workout of workouts; track workout.id) {
+        <div class="workout-card">
+          <div class="workout-header">
+            <span class="workout-date">{{ formatDate(workout.date) }}</span>
+            @if (workout.bodyWeight) {
+              <span class="body-weight">{{ workout.bodyWeight }} kg</span>
+            }
+          </div>
+
+          @if (workout.notes) {
+            <p class="workout-notes">{{ workout.notes }}</p>
+          }
+
+          <div class="workout-exercises">
+            @for (we of workout.workoutExercises; track we.id) {
+              <span class="exercise-tag">{{ we.exercise?.name }} {{ formatWorkoutExercise(we) }}</span>
+            }
+          </div>
+
+          <div class="workout-actions">
+            <a [routerLink]="['/workouts', workout.id, 'edit']" class="btn btn-secondary">Edit</a>
+            <button (click)="deleteWorkout(workout.id)" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

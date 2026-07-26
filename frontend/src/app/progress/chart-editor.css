@@ -1,0 +1,133 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-content {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.btn-close:hover {
+  color: var(--fg);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.config-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  accent-color: var(--green);
+}
+
+.preview-section h3 {
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-chart {
+  height: 200px;
+  background: var(--bg-dim);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.preview-loading,
+.preview-empty {
+  color: var(--fg-dim);
+  font-size: 0.75rem;
+}
+
+.preview-summary {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.summary-value {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.summary-change.up { color: var(--green); }
+.summary-change.down { color: var(--red); }
+.summary-change.flat { color: var(--fg-dim); }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.modal-actions .btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    grid-template-columns: 1fr;
+  }
+}

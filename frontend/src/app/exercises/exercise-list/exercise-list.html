@@ -1,0 +1,42 @@
+<div class="exercise-list">
+  <div class="header">
+    <h2>Exercises</h2>
+    <a routerLink="/exercises/new" class="btn">+ New</a>
+  </div>
+
+  @if (loading) {
+    <p>Loading...</p>
+  } @else if (error) {
+    <div class="error">{{ error }}</div>
+  } @else {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (exercise of exercises; track exercise.id) {
+            <tr>
+              <td>{{ exercise.name }}</td>
+              <td><span class="badge">{{ exercise.muscleGroup }}</span></td>
+              <td>{{ exercise.isDuration ? 'Duration' : 'Reps' }}</td>
+              <td class="actions">
+                @if (!exercise.isDefault) {
+                  <a [routerLink]="['/exercises', exercise.id, 'edit']" class="btn btn-small">Edit</a>
+                  <button (click)="deleteExercise(exercise.id)" class="btn btn-small btn-danger">Del</button>
+                } @else {
+                  <span class="muted">Default</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

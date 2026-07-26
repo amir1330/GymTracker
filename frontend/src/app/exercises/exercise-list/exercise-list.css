@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+td.actions {
+  white-space: nowrap;
+}
+
+td.actions .btn {
+  min-width: 3.2rem;
+  text-align: center;
+}
+
+td.actions .btn + .btn {
+  margin-left: 0.35rem;
+}

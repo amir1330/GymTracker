@@ -1,0 +1,50 @@
+<div class="preset-form">
+  <h2>{{ isEdit ? 'Edit' : 'New' }} Preset</h2>
+
+  @if (error) {
+    <div class="error">{{ error }}</div>
+  }
+
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="name">Preset Name</label>
+      <input type="text" id="name" [(ngModel)]="preset.name" name="name" required>
+    </div>
+
+    <div class="exercises-section">
+      <div class="section-header">
+        <h3>Exercises</h3>
+        <button type="button" (click)="addExercise()" class="btn btn-secondary">Add Exercise</button>
+      </div>
+
+      @if (preset.presetExercises && preset.presetExercises.length > 0) {
+        @for (pe of preset.presetExercises; track $index; let i = $index) {
+          <div class="exercise-entry">
+            <select [(ngModel)]="pe.exerciseId" [name]="'exercise' + i" (ngModelChange)="onExerciseTypeChange(pe)" required>
+              @for (exercise of exercises; track exercise.id) {
+                <option [value]="exercise.id">{{ exercise.name }} ({{ exercise.muscleGroup }})</option>
+              }
+            </select>
+
+            @if (getExercise(pe.exerciseId)?.isDuration) {
+              <input type="number" [(ngModel)]="pe.defaultDuration" [name]="'duration' + i" placeholder="Duration (s)" min="1">
+            } @else {
+              <input type="number" [(ngModel)]="pe.defaultSets" [name]="'sets' + i" placeholder="Sets" min="1">
+              <input type="number" [(ngModel)]="pe.defaultReps" [name]="'reps' + i" placeholder="Reps" min="1">
+              <input type="number" [(ngModel)]="pe.defaultWeight" [name]="'weight' + i" placeholder="Weight" step="0.5">
+            }
+
+            <button type="button" (click)="removeExercise(i)" class="btn btn-danger btn-small">Remove</button>
+          </div>
+        }
+      } @else {
+        <p class="empty">No exercises added yet.</p>
+      }
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn">{{ isEdit ? 'Update' : 'Create' }}</button>
+      <a routerLink="/presets" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,42 @@
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues.
+    
+❯ Building...
+✔ Building...
+Initial chunk files | Names          |  Raw size
+main.js             | main           |   8.98 kB | 
+styles.css          | styles         |   8.10 kB | 
+chunk-HXKI42VX.js   | -              |   2.44 kB | 
+chunk-SG2LYVAH.js   | -              | 894 bytes | 
+
+                    | Initial total  |  20.41 kB
+
+Lazy chunk files    | Names          |  Raw size
+chunk-AB5TNDHW.js   | workout-detail |  41.27 kB | 
+chunk-QP6DMVSM.js   | stats-page     |  30.44 kB | 
+chunk-A6NYZ56P.js   | workout-form   |  21.67 kB | 
+chunk-MOII6JAE.js   | preset-form    |  18.75 kB | 
+chunk-3ILALS4R.js   | settings       |  18.36 kB | 
+chunk-24AKQ2XQ.js   | workout-list   |  11.24 kB | 
+chunk-ZKYC5YRC.js   | register       |  11.04 kB | 
+chunk-W5ACYANB.js   | preset-list    |  10.78 kB | 
+chunk-SN6VWHAT.js   | exercise-form  |  10.52 kB | 
+chunk-TKC4E2ZO.js   | exercise-list  |   9.76 kB | 
+chunk-SJOP4QBF.js   | login          |   7.68 kB | 
+chunk-3ZXJWLSX.js   | -              |   2.73 kB | 
+chunk-T3R7N2QR.js   | -              |   2.08 kB | 
+chunk-TC3MM77G.js   | -              |   1.49 kB | 
+chunk-A453BNHW.js   | -              |   1.37 kB | 
+
+Application bundle generation complete. [4.159 seconds] - 2026-07-25T18:10:07.731Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+  ➜  Network: http://192.168.10.11:4200/
+  ➜  Network: http://10.0.0.3:4200/
