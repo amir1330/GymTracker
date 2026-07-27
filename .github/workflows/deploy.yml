@@ -33,7 +33,7 @@ jobs:
 
       - name: Trigger deploy
         run: |
-          curl -s -o /dev/null -w "%{http_code}" -X POST \
-            http://${{ secrets.VPS_HOST }}:9000/deploy \
+          curl -s --fail -o /dev/null -w "%{http_code}" -X POST \
+            http://${{ secrets.VPS_HOST }}:9000/hooks/deploy \
             -H "Content-Type: application/json" \
             -H "X-Deploy-Token: ${{ secrets.DEPLOY_TOKEN }}"
