@@ -113,9 +113,19 @@ public class ChartService
         };
     }
 
-    public async Task<List<WorkoutExercise>> GetWorkoutsForChart(int userId, string period, int? exerciseId)
+    public async Task<List<WorkoutExercise>> GetWorkoutsForChart(int userId, string period, int? exerciseId, string metric)
     {
         var cutoff = GetCutoffDate(period);
+
+        if (metric == "bodyWeight")
+        {
+            return await _context.WorkoutExercises
+                .Where(we => we.Workout.UserId == userId && we.Workout.Date >= cutoff && we.Workout.BodyWeight.HasValue)
+                .Include(we => we.Workout)
+                .Include(we => we.Exercise)
+                .OrderBy(we => we.Workout.Date)
+                .ToListAsync();
+        }
 
         var query = _context.WorkoutExercises
             .Where(we => we.Workout.UserId == userId && we.Workout.Date >= cutoff)

@@ -104,7 +104,7 @@ public class StatsController : ControllerBase
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
 
-        var workouts = await _chartService.GetWorkoutsForChart(userId, request.Period, request.ExerciseId);
+        var workouts = await _chartService.GetWorkoutsForChart(userId, request.Period, request.ExerciseId, request.Metric);
         var points = _chartService.ComputePoints(workouts, request.Metric);
         var summary = _chartService.ComputeSummary(points);
 

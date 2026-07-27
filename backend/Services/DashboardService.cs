@@ -101,7 +101,7 @@ public class DashboardService
 
         foreach (var chart in charts)
         {
-            var workouts = await _chartService.GetWorkoutsForChart(userId, chart.Period, chart.ExerciseId);
+            var workouts = await _chartService.GetWorkoutsForChart(userId, chart.Period, chart.ExerciseId, chart.Metric);
             var points = _chartService.ComputePoints(workouts, chart.Metric);
             var summary = _chartService.ComputeSummary(points);
 
@@ -118,7 +118,7 @@ public class DashboardService
 
     public async Task<DashboardChartData> ComputeChartDataAsync(int userId, DashboardChart chart)
     {
-        var workouts = await _chartService.GetWorkoutsForChart(userId, chart.Period, chart.ExerciseId);
+        var workouts = await _chartService.GetWorkoutsForChart(userId, chart.Period, chart.ExerciseId, chart.Metric);
         var points = _chartService.ComputePoints(workouts, chart.Metric);
         var summary = _chartService.ComputeSummary(points);
 
