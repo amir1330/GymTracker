@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-onboarding-guide',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './onboarding-guide.html',
   styleUrl: './onboarding-guide.css'
 })

@@ -53,7 +53,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateDashboardChartRequest request)
+    public async Task<IActionResult> Create([FromBody] DashboardChartRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
 
@@ -81,12 +81,20 @@ public class DashboardController : ControllerBase
         var created = await _dashboardService.CreateAsync(chart);
         var chartData = await _dashboardService.ComputeChartDataAsync(userId, created);
 
+        string? exerciseName = null;
+        if (created.ExerciseId.HasValue)
+        {
+            var exercise = await _dashboardService.GetExerciseNameAsync(created.ExerciseId.Value);
+            exerciseName = exercise;
+        }
+
         return CreatedAtAction(nameof(GetAll), new DashboardChartResponse
         {
             Id = created.Id,
             Label = created.Label,
             Metric = created.Metric,
             ExerciseId = created.ExerciseId,
+            ExerciseName = exerciseName,
             Period = created.Period,
             ChartType = created.ChartType,
             Position = created.Position,
@@ -99,7 +107,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateDashboardChartRequest request)
+    public async Task<IActionResult> Update(int id, [FromBody] DashboardChartRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
 

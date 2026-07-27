@@ -1,10 +1,6 @@
 <div class="workout-form">
   <h2>{{ isEdit ? 'Edit' : 'New' }} Workout</h2>
 
-  @if (error) {
-    <div class="error">{{ error }}</div>
-  }
-
   <form (ngSubmit)="onSubmit()">
     <div class="form-row">
       <div class="form-group">

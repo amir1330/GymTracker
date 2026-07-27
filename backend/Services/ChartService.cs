@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using GymTracker.Data;
 using GymTracker.Models;
+using GymTracker.DTOs.Dashboard;
 
 namespace GymTracker.Services;
 
@@ -44,18 +45,6 @@ public class ChartService
             {
                 Date = g.Key.ToString("yyyy-MM-dd"),
                 Value = g.Sum(we => we.Weight.HasValue ? (decimal)(we.Sets * we.Reps * we.Weight.Value) : 0)
-            }).ToList(),
-
-            "est1rm" => grouped.Select(g => new ChartDataPoint
-            {
-                Date = g.Key.ToString("yyyy-MM-dd"),
-                Value = g.Max(we => we.Weight.HasValue ? (decimal)(we.Weight.Value * (1m + (decimal)we.Reps / 30m)) : 0)
-            }).ToList(),
-
-            "reps" => grouped.Select(g => new ChartDataPoint
-            {
-                Date = g.Key.ToString("yyyy-MM-dd"),
-                Value = g.Sum(we => we.Reps)
             }).ToList(),
 
             "duration" => grouped.Select(g => new ChartDataPoint
@@ -119,12 +108,16 @@ public class ChartService
 
         if (metric == "bodyWeight")
         {
-            return await _context.WorkoutExercises
-                .Where(we => we.Workout.UserId == userId && we.Workout.Date >= cutoff && we.Workout.BodyWeight.HasValue)
-                .Include(we => we.Workout)
-                .Include(we => we.Exercise)
-                .OrderBy(we => we.Workout.Date)
+            var workouts = await _context.Workouts
+                .Where(w => w.UserId == userId && w.Date >= cutoff && w.BodyWeight.HasValue)
+                .OrderBy(w => w.Date)
                 .ToListAsync();
+
+            return workouts.Select(w => new WorkoutExercise
+            {
+                WorkoutId = w.Id,
+                Workout = w
+            }).ToList();
         }
 
         var query = _context.WorkoutExercises
@@ -141,6 +134,22 @@ public class ChartService
         return await query.OrderBy(we => we.Workout.Date).ToListAsync();
     }
 
+    public async Task<List<WorkoutExercise>> GetWorkoutsForChartBatch(int userId, DateTime minCutoff, List<int> exerciseIds)
+    {
+        var query = _context.WorkoutExercises
+            .Where(we => we.Workout.UserId == userId && we.Workout.Date >= minCutoff)
+            .Include(we => we.Workout)
+            .Include(we => we.Exercise)
+            .AsQueryable();
+
+        if (exerciseIds.Any())
+        {
+            query = query.Where(we => exerciseIds.Contains(we.ExerciseId));
+        }
+
+        return await query.OrderBy(we => we.Workout.Date).ToListAsync();
+    }
+
     private static decimal NormalizeToSeconds(int value, DurationUnit unit)
     {
         return unit switch
@@ -151,25 +160,4 @@ public class ChartService
             _ => value
         };
     }
-}
-
-public class ChartDataPoint
-{
-    public string Date { get; set; } = string.Empty;
-    public decimal Value { get; set; }
-}
-
-public class ChartSummary
-{
-    public decimal? Current { get; set; }
-    public decimal? Best { get; set; }
-    public string Change { get; set; } = "0%";
-    public string Trend { get; set; } = "flat";
-}
-
-public class ChartDataRequest
-{
-    public string Metric { get; set; } = "weight";
-    public int? ExerciseId { get; set; }
-    public string Period { get; set; } = "30d";
 }

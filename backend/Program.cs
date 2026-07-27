@@ -23,11 +23,11 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ChartService>();
 builder.Services.AddScoped<ExercisesService>();
 builder.Services.AddScoped<PresetsService>();
 builder.Services.AddScoped<WorkoutsService>();
-builder.Services.AddScoped<StatsService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<UserService>();
 

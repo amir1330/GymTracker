@@ -6,8 +6,6 @@ public class User : IdentityUser<int>
 {
     public decimal? Weight { get; set; }
 
-    public decimal? Height { get; set; }
-
     public UserSettings? Settings { get; set; }
 
     public ICollection<Preset> Presets { get; set; } = new List<Preset>();

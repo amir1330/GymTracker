@@ -1,6 +1,6 @@
 namespace GymTracker.DTOs.Dashboard;
 
-public class CreateDashboardChartRequest
+public class DashboardChartRequest
 {
     public string Label { get; set; } = string.Empty;
     public string Metric { get; set; } = "weight";

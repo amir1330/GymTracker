@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { PresetService } from '../../services/preset.service';
@@ -10,7 +9,7 @@ import { Exercise } from '../../models/exercise.model';
 @Component({
   selector: 'app-preset-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule],
   templateUrl: './preset-form.html'
 })
 export class PresetForm implements OnInit {
@@ -20,7 +19,6 @@ export class PresetForm implements OnInit {
   };
   exercises: Exercise[] = [];
   isEdit = false;
-  error = '';
 
   constructor(
     private presetService: PresetService,
@@ -36,9 +34,9 @@ export class PresetForm implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
-      this.presetService.getById(+id).subscribe({
-        next: (preset) => { this.preset = preset; this.cdr.markForCheck(); },
-        error: () => this.router.navigate(['/presets'])
+      this.presetService.getById(+id).subscribe(preset => {
+        this.preset = preset;
+        this.cdr.markForCheck();
       });
     }
   }
@@ -84,26 +82,11 @@ export class PresetForm implements OnInit {
     }
   }
 
-  private extractError(err: any): string {
-    const body = err.error;
-    if (typeof body === 'string') return body;
-    if (body?.message) return body.message;
-    if (Array.isArray(body)) return body.map((e: any) => e.description).join('. ');
-    return 'Operation failed';
-  }
-
   onSubmit(): void {
-    this.error = '';
     if (this.isEdit && this.preset.id) {
-      this.presetService.update(this.preset.id, this.preset).subscribe({
-        next: () => this.router.navigate(['/presets']),
-        error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-      });
+      this.presetService.update(this.preset.id, this.preset).subscribe(() => this.router.navigate(['/presets']));
     } else {
-      this.presetService.create(this.preset).subscribe({
-        next: () => this.router.navigate(['/presets']),
-        error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-      });
+      this.presetService.create(this.preset).subscribe(() => this.router.navigate(['/presets']));
     }
   }
 }

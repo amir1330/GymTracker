@@ -10,7 +10,6 @@ export interface WorkoutExercise {
   weight?: number;
   duration?: number;
   durationUnit?: DurationUnit;
-  restTime?: number;
 }
 
 export interface Workout {

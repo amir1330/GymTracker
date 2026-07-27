@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using GymTracker.Models;
 using GymTracker.Services;
 using GymTracker.DTOs.Presets;
-using AutoMapper;
-
 namespace GymTracker.Controllers;
 
 [ApiController]
@@ -15,13 +13,11 @@ public class PresetsController : ControllerBase
 {
     private readonly PresetsService _presetsService;
     private readonly UserManager<User> _userManager;
-    private readonly IMapper _mapper;
 
-    public PresetsController(PresetsService presetsService, UserManager<User> userManager, IMapper mapper)
+    public PresetsController(PresetsService presetsService, UserManager<User> userManager)
     {
         _presetsService = presetsService;
         _userManager = userManager;
-        _mapper = mapper;
     }
 
     [HttpGet]

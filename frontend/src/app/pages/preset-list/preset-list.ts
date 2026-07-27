@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PresetService } from '../../services/preset.service';
 import { Preset, PresetExercise } from '../../models/preset.model';
@@ -7,13 +6,12 @@ import { Preset, PresetExercise } from '../../models/preset.model';
 @Component({
   selector: 'app-preset-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './preset-list.html'
 })
 export class PresetList implements OnInit {
   presets: Preset[] = [];
   loading = true;
-  error = '';
 
   constructor(
     private presetService: PresetService,
@@ -26,18 +24,10 @@ export class PresetList implements OnInit {
 
   loadPresets(): void {
     this.loading = true;
-    this.error = '';
-    this.presetService.getAll().subscribe({
-      next: (presets) => {
-        this.presets = presets;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.error = this.extractError(err);
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
+    this.presetService.getAll().subscribe(presets => {
+      this.presets = presets;
+      this.loading = false;
+      this.cdr.markForCheck();
     });
   }
 
@@ -55,19 +45,7 @@ export class PresetList implements OnInit {
 
   deletePreset(id: number): void {
     if (confirm('Are you sure you want to delete this preset?')) {
-      this.error = '';
-      this.presetService.delete(id).subscribe({
-        next: () => this.loadPresets(),
-        error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-      });
+      this.presetService.delete(id).subscribe(() => this.loadPresets());
     }
-  }
-
-  private extractError(err: any): string {
-    const body = err.error;
-    if (typeof body === 'string') return body;
-    if (body?.message) return body.message;
-    if (Array.isArray(body)) return body.map((e: any) => e.description).join('. ');
-    return 'Operation failed';
   }
 }

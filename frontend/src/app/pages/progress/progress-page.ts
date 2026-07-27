@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardChart } from '../../models/dashboard.model';
 import { ChartTile } from '../../components/chart-tile/chart-tile';
@@ -8,14 +7,13 @@ import { ChartEditor } from '../../components/chart-editor/chart-editor';
 @Component({
   selector: 'app-progress-page',
   standalone: true,
-  imports: [CommonModule, ChartTile, ChartEditor],
+  imports: [ChartTile, ChartEditor],
   templateUrl: './progress-page.html',
   styleUrl: './progress-page.css'
 })
 export class ProgressPage implements OnInit {
   charts: DashboardChart[] = [];
   loading = true;
-  error = '';
 
   editorOpen = false;
   editingChart: DashboardChart | null = null;
@@ -31,18 +29,10 @@ export class ProgressPage implements OnInit {
 
   loadDashboard(): void {
     this.loading = true;
-    this.error = '';
-    this.dashboardService.getAll().subscribe({
-      next: (charts: DashboardChart[]) => {
-        this.charts = charts;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err: any) => {
-        this.error = this.extractError(err);
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
+    this.dashboardService.getAll().subscribe(charts => {
+      this.charts = charts;
+      this.loading = false;
+      this.cdr.markForCheck();
     });
   }
 
@@ -63,39 +53,21 @@ export class ProgressPage implements OnInit {
 
   saveChart(config: Partial<DashboardChart>): void {
     if (this.editingChart) {
-      this.dashboardService.update(this.editingChart.id, config).subscribe({
-        next: () => {
-          this.closeEditor();
-          this.loadDashboard();
-        },
-        error: (err: any) => {
-          this.error = this.extractError(err);
-          this.cdr.markForCheck();
-        }
+      this.dashboardService.update(this.editingChart.id, config).subscribe(() => {
+        this.closeEditor();
+        this.loadDashboard();
       });
     } else {
-      this.dashboardService.create(config).subscribe({
-        next: () => {
-          this.closeEditor();
-          this.loadDashboard();
-        },
-        error: (err: any) => {
-          this.error = this.extractError(err);
-          this.cdr.markForCheck();
-        }
+      this.dashboardService.create(config).subscribe(() => {
+        this.closeEditor();
+        this.loadDashboard();
       });
     }
   }
 
   deleteChart(chart: DashboardChart): void {
     if (confirm(`Delete "${chart.label}"?`)) {
-      this.dashboardService.delete(chart.id).subscribe({
-        next: () => this.loadDashboard(),
-        error: (err: any) => {
-          this.error = this.extractError(err);
-          this.cdr.markForCheck();
-        }
-      });
+      this.dashboardService.delete(chart.id).subscribe(() => this.loadDashboard());
     }
   }
 
@@ -105,13 +77,7 @@ export class ProgressPage implements OnInit {
       { id: this.charts[index - 1].id, position: index },
       { id: chart.id, position: index - 1 }
     ];
-    this.dashboardService.reorder(items).subscribe({
-      next: () => this.loadDashboard(),
-      error: (err: any) => {
-        this.error = this.extractError(err);
-        this.cdr.markForCheck();
-      }
-    });
+    this.dashboardService.reorder(items).subscribe(() => this.loadDashboard());
   }
 
   moveDown(chart: DashboardChart, index: number): void {
@@ -120,19 +86,6 @@ export class ProgressPage implements OnInit {
       { id: chart.id, position: index + 1 },
       { id: this.charts[index + 1].id, position: index }
     ];
-    this.dashboardService.reorder(items).subscribe({
-      next: () => this.loadDashboard(),
-      error: (err: any) => {
-        this.error = this.extractError(err);
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  private extractError(err: any): string {
-    const body = err.error;
-    if (typeof body === 'string') return body;
-    if (body?.message) return body.message;
-    return 'Operation failed';
+    this.dashboardService.reorder(items).subscribe(() => this.loadDashboard());
   }
 }

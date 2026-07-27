@@ -1,0 +1,11 @@
+**/node_modules
+**/bin
+**/obj
+**/.git
+**/.idea
+**/openspec
+**/.opencode
+**/.vscode
+**/dist
+**/coverage
+**/.angular

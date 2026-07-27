@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { WorkoutService } from '../../services/workout.service';
@@ -12,7 +11,7 @@ import { Preset } from '../../models/preset.model';
 @Component({
   selector: 'app-workout-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule],
   templateUrl: './workout-form.html'
 })
 export class WorkoutForm implements OnInit {
@@ -25,7 +24,6 @@ export class WorkoutForm implements OnInit {
   exercises: Exercise[] = [];
   presets: Preset[] = [];
   isEdit = false;
-  error = '';
 
   constructor(
     private workoutService: WorkoutService,
@@ -43,9 +41,9 @@ export class WorkoutForm implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
-      this.workoutService.getById(+id).subscribe({
-        next: (workout) => { this.workout = workout; this.cdr.markForCheck(); },
-        error: () => this.router.navigate(['/workouts'])
+      this.workoutService.getById(+id).subscribe(workout => {
+        this.workout = workout;
+        this.cdr.markForCheck();
       });
     }
   }
@@ -105,26 +103,11 @@ export class WorkoutForm implements OnInit {
     this.workout.workoutExercises?.splice(index, 1);
   }
 
-  private extractError(err: any): string {
-    const body = err.error;
-    if (typeof body === 'string') return body;
-    if (body?.message) return body.message;
-    if (Array.isArray(body)) return body.map((e: any) => e.description).join('. ');
-    return 'Operation failed';
-  }
-
   onSubmit(): void {
-    this.error = '';
     if (this.isEdit && this.workout.id) {
-      this.workoutService.update(this.workout.id, this.workout).subscribe({
-        next: () => this.router.navigate(['/workouts']),
-        error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-      });
+      this.workoutService.update(this.workout.id, this.workout).subscribe(() => this.router.navigate(['/workouts']));
     } else {
-      this.workoutService.create(this.workout).subscribe({
-        next: () => this.router.navigate(['/workouts']),
-        error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-      });
+      this.workoutService.create(this.workout).subscribe(() => this.router.navigate(['/workouts']));
     }
   }
 }

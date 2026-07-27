@@ -30,15 +30,10 @@ export class WorkoutService {
         reps: we.reps,
         weight: we.weight,
         duration: we.duration,
-        durationUnit: we.durationUnit,
-        restTime: we.restTime
+        durationUnit: we.durationUnit
       }))
     };
     return this.http.post<Workout>(this.apiUrl, body);
-  }
-
-  createFromPreset(presetId: number): Observable<Workout> {
-    return this.http.post<Workout>(`${this.apiUrl}/from-preset/${presetId}`, {});
   }
 
   update(id: number, workout: Partial<Workout>): Observable<Workout> {
@@ -52,8 +47,7 @@ export class WorkoutService {
         reps: we.reps,
         weight: we.weight,
         duration: we.duration,
-        durationUnit: we.durationUnit,
-        restTime: we.restTime
+        durationUnit: we.durationUnit
       }))
     };
     return this.http.put<Workout>(`${this.apiUrl}/${id}`, body);

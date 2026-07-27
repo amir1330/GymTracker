@@ -1,0 +1,17 @@
+[
+  {
+    "id": "deploy",
+    "execute-command": "/scripts/deploy.sh",
+    "command-working-directory": "/tmp",
+    "trigger-rule": {
+      "match": {
+        "type": "value",
+        "value": "{{.DeployToken}}",
+        "parameter": {
+          "source": "header",
+          "name": "X-Deploy-Token"
+        }
+      }
+    }
+  }
+]

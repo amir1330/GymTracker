@@ -1,5 +1,4 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -7,14 +6,13 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule],
   templateUrl: './register.html'
 })
 export class Register {
   email = '';
   password = '';
   confirmPassword = '';
-  weight?: number;
   error = '';
 
   constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
@@ -33,8 +31,7 @@ export class Register {
     this.authService.register({
       email,
       password: this.password,
-      confirmPassword: this.confirmPassword,
-      weight: this.weight
+      confirmPassword: this.confirmPassword
     }).subscribe({
       next: () => this.router.navigate(['/workouts']),
       error: (err) => {

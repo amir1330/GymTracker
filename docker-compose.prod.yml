@@ -1,0 +1,56 @@
+services:
+  gym-tracker:
+    image: ghcr.io/amir1330/testexercise:latest
+    container_name: gym-tracker
+    restart: unless-stopped
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=gym_tracker;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=GymTracker
+      - Jwt__Audience=GymTracker
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - db
+    networks:
+      - web
+      - gym-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gym.rule=Host(`gym.abuyunus.cc`)"
+      - "traefik.http.routers.gym.entrypoints=websecure"
+      - "traefik.http.routers.gym.tls=true"
+      - "traefik.http.services.gym.loadbalancer.server.port=80"
+
+  db:
+    image: postgres:16-alpine
+    container_name: gym-tracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gym_tracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gym-internal
+
+  webhook:
+    image: almir/webhook
+    container_name: gym-webhook
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./webhook/hooks.json:/etc/webhook/hooks.json
+      - ./webhook/deploy.sh:/scripts/deploy.sh
+      - /root/gym-tracker:/root/gym-tracker
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -verbose -hooks /etc/webhook/hooks.json -port 9000
+
+networks:
+  web:
+    external: true
+  gym-internal:
+
+volumes:
+  postgres_data:

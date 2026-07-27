@@ -1,15 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { OnboardingGuide } from './components/onboarding-guide/onboarding-guide';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, OnboardingGuide],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, OnboardingGuide],
+  templateUrl: './app.html'
 })
 export class App implements OnInit {
   constructor(public authService: AuthService) {}

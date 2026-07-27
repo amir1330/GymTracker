@@ -4,10 +4,6 @@
     <a routerLink="/presets/new" class="btn">Add Preset</a>
   </div>
 
-  @if (error) {
-    <div class="error">{{ error }}</div>
-  }
-
   @if (loading) {
     <p>Loading...</p>
   } @else if (presets.length === 0) {

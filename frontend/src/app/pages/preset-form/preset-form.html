@@ -1,10 +1,6 @@
 <div class="preset-form">
   <h2>{{ isEdit ? 'Edit' : 'New' }} Preset</h2>
 
-  @if (error) {
-    <div class="error">{{ error }}</div>
-  }
-
   <form (ngSubmit)="onSubmit()">
     <div class="form-group">
       <label for="name">Preset Name</label>

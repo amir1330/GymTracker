@@ -15,6 +15,6 @@ export const routes: Routes = [
   { path: 'exercises/new', loadComponent: () => import('./pages/exercise-form/exercise-form').then(m => m.ExerciseForm), canActivate: [authGuard] },
   { path: 'exercises/:id/edit', loadComponent: () => import('./pages/exercise-form/exercise-form').then(m => m.ExerciseForm), canActivate: [authGuard] },
   { path: 'progress', loadComponent: () => import('./pages/progress/progress-page').then(m => m.ProgressPage), canActivate: [authGuard] },
-  { path: 'settings', loadComponent: () => import('./pages/settings/settings').then(m => m.Settings), canActivate: [authGuard] },
+  { path: 'settings', loadComponent: () => import('./pages/settings/account').then(m => m.Account), canActivate: [authGuard] },
   { path: '**', redirectTo: '/progress' }
 ];

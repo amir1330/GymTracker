@@ -1,22 +1,17 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { SettingsService } from '../../services/settings.service';
-import { UserProfile } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-account',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './settings.html'
+  imports: [],
+  templateUrl: './account.html'
 })
-export class Settings implements OnInit, OnDestroy {
-  profile: UserProfile | null = null;
+export class Account implements OnInit, OnDestroy {
+  email = '';
   theme = 'auto';
   success = '';
-  error = '';
-  loading = true;
-  loadError = '';
   private mediaQuery?: MediaQueryList;
   private mediaHandler?: (e: MediaQueryListEvent) => void;
 
@@ -27,46 +22,39 @@ export class Settings implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadProfile();
+    this.loadEmailFromToken();
+    this.loadTheme();
   }
 
   ngOnDestroy(): void {
     this.mediaQuery?.removeEventListener('change', this.mediaHandler!);
   }
 
-  loadProfile(): void {
-    this.loading = true;
-    this.loadError = '';
-    this.settingsService.getProfile().subscribe({
-      next: (profile) => {
-        this.profile = profile;
-        if (profile.settings?.theme) {
-          this.theme = profile.settings.theme;
-        }
-        this.applyTheme(this.theme);
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.loadError = err.error?.message || 'Failed to load profile';
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
-    });
+  private loadEmailFromToken(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        this.email = payload.email || '';
+      } catch {}
+    }
+    this.cdr.markForCheck();
+  }
+
+  private loadTheme(): void {
+    this.theme = localStorage.getItem('theme') || 'auto';
+    this.applyTheme(this.theme);
+    this.cdr.markForCheck();
   }
 
   updateSettings(): void {
     this.success = '';
-    this.error = '';
     this.settingsService.updateSettings({
       theme: this.theme
-    }).subscribe({
-      next: () => {
-        this.success = 'Settings updated';
-        this.applyTheme(this.theme);
-        this.cdr.markForCheck();
-      },
-      error: (err) => { this.error = err.error?.message || 'Update failed'; this.cdr.markForCheck(); }
+    }).subscribe(() => {
+      this.success = 'Settings updated';
+      this.applyTheme(this.theme);
+      this.cdr.markForCheck();
     });
   }
 

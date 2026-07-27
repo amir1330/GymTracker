@@ -188,9 +188,6 @@ namespace GymTracker.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("numeric");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -246,12 +243,6 @@ namespace GymTracker.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DefaultRestTimeSeconds")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("RestTimerEnabled")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Theme")
                         .IsRequired()
@@ -314,9 +305,6 @@ namespace GymTracker.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("Reps")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("RestTime")
                         .HasColumnType("integer");
 
                     b.Property<int>("Sets")

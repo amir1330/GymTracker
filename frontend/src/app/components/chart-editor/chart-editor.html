@@ -9,7 +9,7 @@
       <div class="config-section">
         <div class="form-group">
           <label>Label</label>
-          <input type="text" [(ngModel)]="label" (ngModelChange)="onConfigChange()" placeholder="e.g. Bench Press Progress">
+          <input type="text" [(ngModel)]="label" (ngModelChange)="onConfigChange()" (input)="onLabelInput()" placeholder="e.g. Bench Press Progress">
         </div>
 
         <div class="form-group">

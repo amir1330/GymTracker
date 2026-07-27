@@ -69,11 +69,6 @@ public class ExercisesService
         return true;
     }
 
-    public async Task<bool> ExistsAsync(int id)
-    {
-        return await _context.Exercises.AnyAsync(e => e.Id == id);
-    }
-
     public async Task<bool> NameExistsAsync(string name, int userId)
     {
         return await _context.Exercises.AnyAsync(e =>

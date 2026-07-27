@@ -6,11 +6,8 @@ public class UserSettings
 
     public int UserId { get; set; }
 
+    [System.Text.Json.Serialization.JsonIgnore]
     public User User { get; set; } = null!;
 
-    public bool RestTimerEnabled { get; set; } = true;
-
-    public int DefaultRestTimeSeconds { get; set; } = 90;
-
-    public string Theme { get; set; } = "dark";
+    public string Theme { get; set; } = "auto";
 }

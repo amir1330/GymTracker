@@ -1,7 +1,4 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using GymTracker.Data;
-using GymTracker.Models;
 using GymTracker.Services;
 using GymTracker.DTOs.Auth;
 
@@ -11,72 +8,34 @@ namespace GymTracker.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<User> _userManager;
-    private readonly JwtService _jwtService;
-    private readonly GymDbContext _context;
+    private readonly AuthService _authService;
 
-    public AuthController(UserManager<User> userManager, JwtService jwtService, GymDbContext context)
+    public AuthController(AuthService authService)
     {
-        _userManager = userManager;
-        _jwtService = jwtService;
-        _context = context;
+        _authService = authService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        if (request.Password != request.ConfirmPassword)
-        {
-            return BadRequest(new { message = "Passwords do not match" });
-        }
+        var (success, token, userId, error) = await _authService.RegisterAsync(
+            request.Email, request.Password, request.ConfirmPassword);
 
-        if (request.Password.Length < 6)
-        {
-            return BadRequest(new { message = "Password must be at least 6 characters" });
-        }
+        if (!success)
+            return BadRequest(new { message = error });
 
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
-        if (existingUser != null)
-        {
-            return BadRequest(new { message = "Email already registered" });
-        }
-
-        var user = new User
-        {
-            UserName = request.Email,
-            Email = request.Email,
-            Weight = request.Weight
-        };
-
-        var result = await _userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        _context.UserSettings.Add(new UserSettings
-        {
-            UserId = user.Id,
-            RestTimerEnabled = true,
-            DefaultRestTimeSeconds = 90,
-            Theme = "auto"
-        });
-        await _context.SaveChangesAsync();
-
-        var token = _jwtService.GenerateToken(user.Id, user.UserName!, user.Email!);
-        return Ok(new { token, userId = user.Id });
+        return Ok(new { token, userId });
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-        {
-            return BadRequest(new { message = "Invalid credentials" });
-        }
+        var (success, token, userId, error) = await _authService.LoginAsync(
+            request.Email, request.Password);
 
-        var token = _jwtService.GenerateToken(user.Id, user.UserName!, user.Email!);
-        return Ok(new { token, userId = user.Id });
+        if (!success)
+            return BadRequest(new { message = error });
+
+        return Ok(new { token, userId });
     }
 }

@@ -10,5 +10,4 @@ public class WorkoutExerciseRequest
     public decimal? Weight { get; set; }
     public int? Duration { get; set; }
     public DurationUnit DurationUnit { get; set; } = DurationUnit.Seconds;
-    public int? RestTime { get; set; }
 }
