@@ -34,7 +34,11 @@ public class GymDbContext : IdentityDbContext<User, IdentityRole<int>, int>
         modelBuilder.Entity<Exercise>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => new { e.Name, e.UserId }).IsUnique();
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Exercises)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Preset>(entity =>

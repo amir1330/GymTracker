@@ -126,6 +126,6 @@
 
 ## 16. Git
 
-- [ ] 16.1 Stage all changes
-- [ ] 16.2 Commit with descriptive message
+- [x] 16.1 Stage all changes
+- [x] 16.2 Commit with descriptive message
 - [ ] 16.3 Push to GitHub

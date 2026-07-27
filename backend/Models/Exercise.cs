@@ -21,6 +21,11 @@ public class Exercise
 
     public bool IsDefault { get; set; }
 
+    public int? UserId { get; set; }
+
+    [JsonIgnore]
+    public User? User { get; set; }
+
     [JsonIgnore]
     public ICollection<PresetExercise> PresetExercises { get; set; } = new List<PresetExercise>();
 

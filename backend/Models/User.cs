@@ -13,4 +13,6 @@ public class User : IdentityUser<int>
     public ICollection<Preset> Presets { get; set; } = new List<Preset>();
 
     public ICollection<Workout> Workouts { get; set; } = new List<Workout>();
+
+    public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
 }
