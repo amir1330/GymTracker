@@ -17,5 +17,6 @@ COPY --from=backend /app/publish /app
 COPY nginx.conf /etc/nginx/sites-available/default
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+WORKDIR /app
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
