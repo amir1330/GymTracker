@@ -34,19 +34,6 @@ services:
     networks:
       - gym-internal
 
-  webhook:
-    image: almir/webhook
-    container_name: gym-webhook
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-    volumes:
-      - ./webhook/hooks.json:/etc/webhook/hooks.json
-      - ./webhook/deploy.sh:/scripts/deploy.sh
-      - /root/gym-tracker:/root/gym-tracker
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: -verbose -hooks /etc/webhook/hooks.json -port 9000
-
 networks:
   web:
     external: true
