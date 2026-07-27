@@ -1,446 +1,563 @@
-# GymTracker — Complete Project Guide
+# GymTracker — Architecture Guide
 
-A beginner-friendly walkthrough of every decision, pattern, and connection in this full-stack gym tracking app.
+A beginner-friendly walkthrough of every layer, pattern, and connection in this full-stack gym tracking app.
 
 ---
 
 ## Table of Contents
 
 1. [Big Picture](#1-big-picture)
-2. [How the Pieces Connect](#2-how-the-pieces-connect)
-3. [Backend (ASP.NET)](#3-backend-aspnet)
-4. [Frontend (Angular)](#4-frontend-angular)
-5. [Database](#5-database)
-6. [Authentication](#6-authentication)
-7. [API Endpoints](#7-api-endpoints)
-8. [Key Patterns Explained](#8-key-patterns-explained)
-9. [File Structure](#9-file-structure)
+2. [Backend Architecture (ASP.NET 8)](#2-backend-architecture)
+3. [Frontend Architecture (Angular 22)](#3-frontend-architecture)
+4. [Database (PostgreSQL)](#4-database)
+5. [Authentication](#5-authentication)
+6. [API Endpoints](#6-api-endpoints)
+7. [Key Patterns](#7-key-patterns)
+8. [File Structure](#8-file-structure)
 
 ---
 
 ## 1. Big Picture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    USER'S BROWSER                       │
-│                                                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │            Angular 22 SPA (port 4200)             │  │
-│  │                                                   │  │
-│  │  ┌─────────┐  ┌─────────┐  ┌──────────────────┐  │  │
-│  │  │  Login  │  │ Workout │  │  Progress Charts │  │  │
-│  │  │  Page   │  │  Form   │  │  (Chart.js)      │  │  │
-│  │  └────┬────┘  └────┬────┘  └────────┬─────────┘  │  │
-│  │       │             │                │             │  │
-│  │       └─────────────┼────────────────┘             │  │
-│  │                     │                              │  │
-│  │              HTTP calls with                       │  │
-│  │              JWT Bearer token                      │  │
-│  └─────────────────────┼─────────────────────────────┘  │
-│                        │                                │
-└────────────────────────┼────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│          ASP.NET Web API (port 5000)                    │
-│                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │  Auth    │  │Workouts  │  │Dashboard │  ... 7 total │
-│  │Controller│  │Controller│  │Controller│              │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘              │
-│       │             │             │                      │
-│       └─────────────┼─────────────┘                      │
-│                     │                                    │
-│            ┌────────┴────────┐                           │
-│            │  EF Core ORM    │                           │
-│            └────────┬────────┘                           │
-│                     │                                    │
-└─────────────────────┼───────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────┐
-│              PostgreSQL (port 5432)                      │
-│              Database: gym_tracker                       │
-│                                                         │
-│  Tables: Users, Exercises, Workouts, WorkoutExercises,  │
-│          Presets, PresetExercises, DashboardCharts,      │
-│          UserSettings + ASP.NET Identity tables          │
-└─────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                      USER'S BROWSER                          │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │              Angular 22 SPA (port 4200)                 │  │
+│  │                                                         │  │
+│  │  pages/              components/       services/        │  │
+│  │  ┌──────────┐        ┌──────────┐     ┌──────────────┐ │  │
+│  │  │ Login    │        │ ChartTile│     │WorkoutService│ │  │
+│  │  │ Register │        │ ChartEd. │     │ExerciseServ. │ │  │
+│  │  │ Workouts │◄──────►│ Onboard. │◄───►│PresetService │ │  │
+│  │  │ Presets  │        └──────────┘     │DashboardServ.│ │  │
+│  │  │ Exercises│                         │AuthService   │ │  │
+│  │  │ Progress │    models/              │SettingsServ. │ │  │
+│  │  │ Settings │    ┌──────────┐         └──────┬───────┘ │  │
+│  │  └──────────┘    │Interfaces│                │         │  │
+│  │                  └──────────┘     HTTP with JWT Bearer │  │
+│  └───────────────────────┼───────────────────────────────┘  │
+│                          │                                   │
+└──────────────────────────┼───────────────────────────────────┘
+                           │
+                           ▼
+┌───────────────────────────────────────────────────────────────┐
+│                ASP.NET Web API (port 5000)                   │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │  CONTROLLER LAYER  (thin HTTP handlers)             │     │
+│  │  AuthController │ WorkoutsController │ Exercises... │     │
+│  │  DashboardController │ PresetsController │ ...      │     │
+│  └──────────────────────┬──────────────────────────────┘     │
+│                         │ calls                               │
+│  ┌──────────────────────▼──────────────────────────────┐     │
+│  │  SERVICE LAYER  (business logic + DB access)        │     │
+│  │  ExercisesService │ WorkoutsService │ PresetsService │     │
+│  │  StatsService │ DashboardService │ UserService      │     │
+│  │  JwtService │ ChartService                          │     │
+│  └──────────────────────┬──────────────────────────────┘     │
+│                         │ uses                                │
+│  ┌──────────────────────▼──────────────────────────────┐     │
+│  │  DTOs/  (request/response shapes)                   │     │
+│  │  Auth/ │ Workouts/ │ Exercises/ │ Presets/          │     │
+│  │  Stats/ │ Dashboard/ │ User/                        │     │
+│  └──────────────────────┬──────────────────────────────┘     │
+│                         │ maps via                            │
+│  ┌──────────────────────▼──────────────────────────────┐     │
+│  │  AutoMapper  (entity ↔ DTO conversion)              │     │
+│  │  ExerciseProfile │ WorkoutProfile │ PresetProfile    │     │
+│  │  UserProfile                                         │     │
+│  └──────────────────────┬──────────────────────────────┘     │
+│                         │ queries                             │
+│  ┌──────────────────────▼──────────────────────────────┐     │
+│  │  EF Core  (ORM → SQL)                               │     │
+│  │  GymDbContext (IdentityDbContext<User>)              │     │
+│  └──────────────────────┬──────────────────────────────┘     │
+│                         │                                     │
+└─────────────────────────┼─────────────────────────────────────┘
+                          │
+                          ▼
+┌───────────────────────────────────────────────────────────────┐
+│                PostgreSQL (port 5432)                         │
+│                Database: gym_tracker                          │
+│                                                               │
+│  Tables: Users, Exercises, Workouts, WorkoutExercises,       │
+│          Presets, PresetExercises, DashboardCharts,           │
+│          UserSettings + ASP.NET Identity tables               │
+└───────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 2. How the Pieces Connect
-
-### Request lifecycle
+### Request Lifecycle
 
 1. User clicks a button in the Angular app
 2. A component calls a service method (e.g., `workoutService.create(...)`)
 3. The service makes an HTTP request to `http://127.0.0.1:5000/api/workouts`
 4. Angular's HTTP interceptor **automatically attaches the JWT token** to the header
 5. The request hits the ASP.NET backend
-6. The `[Authorize]` attribute checks the JWT token — if invalid/missing, returns 401
-7. The controller extracts the user ID from the token's claims
-8. The controller calls EF Core to query/modify PostgreSQL
-9. The response flows back: PostgreSQL → EF Core → Controller → HTTP response → Angular service → Component → Template updates
-
-### Development servers
-
-```
-Angular dev server:  http://localhost:4200  (Vite, hot reload)
-ASP.NET API:         http://localhost:5000  (Kestrel)
-PostgreSQL:          localhost:5432
-```
-
-Angular's `proxy.conf.json` forwards `/api/*` requests to `http://localhost:5000`, so the frontend code just calls `/api/...` without worrying about CORS during development.
+6. The `[Authorize]` attribute checks the JWT — if invalid/missing, returns 401
+7. The **Controller** extracts the user ID from the token, validates input, delegates to a **Service**
+8. The **Service** runs business logic, calls **EF Core** to query/modify PostgreSQL
+9. The response flows back: PostgreSQL → EF Core → Service → Controller → HTTP → Angular service → Component → Template updates
 
 ---
 
-## 3. Backend (ASP.NET)
+## 2. Backend Architecture (ASP.NET 8)
 
-### What is ASP.NET?
+### The Three-Layer Pattern
 
-ASP.NET is Microsoft's framework for building web APIs. Think of it as a engine that:
-- Receives HTTP requests (GET, POST, PUT, DELETE)
-- Routes them to the right code (controller methods)
-- Handles authentication, serialization, database access
-- Sends back JSON responses
-
-### Program.cs — The entry point
-
-This is the first file that runs. It does two things:
-
-**A) Register services** (what the app can use):
-```
-AddControllers()         → Yes, we have controllers
-AddDbContext<Postgres>   → We use PostgreSQL as our database
-AddIdentity<User>        → We use ASP.NET's user management system
-AddJwtBearer()           → We authenticate with JWT tokens
-AddCors("AllowAngular")  → Allow requests from localhost:4200
-AddScoped<JwtService>    → JWT token generation
-AddScoped<ChartService>  → Chart data computation
-```
-
-**B) Build the middleware pipeline** (order matters!):
-```
-Request comes in
-  → Swagger (dev only, API docs at /swagger)
-  → CORS (check if request origin is allowed)
-  → Authentication (decode JWT token, identify user)
-  → Authorization (check if user has permission)
-  → Route to controller
-  → Send response
-```
-
-### Controllers — The API endpoints
-
-Each controller is a class that handles HTTP requests for one domain:
+The backend uses **Controller → Service → EF Core DbContext** (no repository layer):
 
 ```
-AuthController      →  /api/auth/*       (login, register)
-UserController      →  /api/user/*       (profile, settings)
-ExercisesController →  /api/exercises/*  (CRUD for exercises)
-WorkoutsController  →  /api/workouts/*   (CRUD for workouts)
-PresetsController   →  /api/presets/*    (CRUD for workout templates)
-StatsController     →  /api/stats/*      (aggregated statistics)
-DashboardController →  /api/dashboard/*  (chart configurations)
+Controller          Service             DbContext
+─────────          ───────             ─────────
+HTTP routing       Business logic      Database queries
+Input validation   Ownership checks    SQL generation
+User ID extraction Data transformation Connection management
+Return responses   Call DB via context  Change tracking
 ```
 
-**How a controller method works (example):**
+**Why no repository layer?** EF Core's `DbContext` already implements the Unit of Work and Repository patterns. Adding another layer on top would be redundant indirection for a project this size.
+
+### Layer 1: Controllers (thin HTTP handlers)
+
+Controllers handle **only** HTTP concerns. They:
+- Extract the user ID from the JWT token
+- Validate input (via DTOs and `[Required]` attributes)
+- Call the appropriate service method
+- Return the right HTTP status code
 
 ```csharp
-[HttpPost]                              // This handles POST requests
-[Authorize]                             // User must be logged in
-public async Task<IActionResult> Create([FromBody] CreateWorkoutRequest request)
+[HttpPost]
+[Authorize]
+public async Task<IActionResult> Create([FromBody] ExerciseRequest request)
 {
-    var userId = int.Parse(_userManager.GetUserId(User)!);  // Get user from JWT
+    // Get user from JWT
+    var userId = int.Parse(_userManager.GetUserId(User)!);
     
-    var workout = new Workout                                // Create database record
+    // Delegate to service
+    var created = await _exercisesService.CreateAsync(exercise, userId);
+    
+    // Return HTTP response
+    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+}
+```
+
+Controllers **never**:
+- Write SQL queries
+- Call `_context` directly
+- Contain business logic
+- Define DTOs (they're in `DTOs/`)
+
+### Layer 2: Services (business logic + DB access)
+
+Services own all business logic and data access. Each service handles one domain:
+
+| Service | Responsibility |
+|---------|---------------|
+| `ExercisesService` | CRUD, user-scoping, name uniqueness |
+| `WorkoutsService` | CRUD, profile weight sync, preset loading |
+| `PresetsService` | CRUD, user-scoping |
+| `StatsService` | Aggregated statistics queries |
+| `DashboardService` | Chart config CRUD, batch data loading |
+| `UserService` | Profile and settings updates |
+| `JwtService` | JWT token generation |
+| `ChartService` | Chart data computation (weight, volume, 1RM, duration, etc.) |
+
+**Example — ExercisesService:**
+
+```csharp
+public class ExercisesService
+{
+    private readonly GymDbContext _context;
+
+    public ExercisesService(GymDbContext context)
     {
-        UserId = userId,
-        Date = request.Date,
-        Notes = request.Notes
-    };
-    
-    _context.Workouts.Add(workout);                          // Add to EF Core
-    await _context.SaveChangesAsync();                       // Save to PostgreSQL
-    
-    return CreatedAtAction(...);                             // Return 201 Created
-}
-```
+        _context = context;
+    }
 
-**Key concepts:**
-- `[HttpPost]` / `[HttpGet]` / `[HttpPut]` / `[HttpDelete]` — which HTTP method this handles
-- `[Authorize]` — requires a valid JWT token
-- `[FromBody]` — the request body is deserialized into this object
-- `async/await` — the database call is asynchronous (doesn't block the server)
-- `_context` — the EF Core database connection
-
-### Services — Reusable logic
-
-**JwtService:** Generates JWT tokens when users register or login.
-
-```csharp
-public string GenerateToken(int userId, string username, string email)
-{
-    // Create claims (data to store in the token)
-    var claims = new[] {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.Name, username),
-        new Claim(ClaimTypes.Email, email)
-    };
-    
-    // Create token with expiration (60 minutes)
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-    var token = new JwtSecurityToken(
-        issuer: "GymTracker",
-        audience: "GymTracker",
-        expires: DateTime.UtcNow.AddMinutes(60),
-        signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-    );
-    
-    return new JwtSecurityTokenHandler().WriteToken(token);
-}
-```
-
-**ChartService:** Computes chart data for the progress dashboard.
-
-```csharp
-// Given a metric and workout data, compute daily data points
-public List<ChartDataPoint> ComputePoints(List<WorkoutExercise> workouts, string metric)
-{
-    return metric switch
+    // Returns default exercises + user's own exercises
+    public async Task<List<Exercise>> GetAllAsync(int userId)
     {
-        "weight"    => /* max weight per day */,
-        "volume"    => /* total volume per day */,
-        "est1rm"    => /* estimated 1RM per day */,
-        "reps"      => /* total reps per day */,
-        "bodyWeight"=> /* body weight per day */,
-        "frequency" => /* workouts per week */,
-    };
+        return await _context.Exercises
+            .Where(e => e.IsDefault || e.UserId == userId)  // ← ownership filter
+            .OrderBy(e => e.MuscleGroup)
+            .ThenBy(e => e.Name)
+            .ToListAsync();
+    }
+
+    // Only allows creating if name isn't taken by defaults or this user
+    public async Task<Exercise> CreateAsync(Exercise exercise, int userId)
+    {
+        exercise.UserId = userId;
+        exercise.IsDefault = false;
+        _context.Exercises.Add(exercise);
+        await _context.SaveChangesAsync();
+        return exercise;
+    }
 }
 ```
 
-### DTOs (Data Transfer Objects)
+**Key pattern — user scoping:** Every query filters by `UserId` (or includes `IsDefault` records). This ensures users never see or modify each other's data.
 
-DTOs are classes that define the shape of API request/response data. They're separate from database models:
+### Layer 3: DTOs (Data Transfer Objects)
+
+DTOs define the shape of API request/response data. They're separate from database models:
+
+```
+DTOs/
+├── Auth/
+│   ├── RegisterRequest.cs      { username, email, password, confirmPassword }
+│   └── LoginRequest.cs         { email, password }
+├── Workouts/
+│   ├── CreateWorkoutRequest.cs { date, notes, bodyWeight, workoutExercises }
+│   ├── UpdateWorkoutRequest.cs
+│   ├── WorkoutExerciseRequest.cs { exerciseId, sets, reps, weight, duration }
+│   └── WorkoutResponse.cs
+├── Exercises/
+│   └── ExerciseRequest.cs      { name, muscleGroup, isDuration, durationUnit }
+├── Presets/
+│   ├── CreatePresetRequest.cs
+│   ├── PresetExerciseRequest.cs
+│   └── PresetResponse.cs
+├── Stats/
+│   └── StatsResponse.cs
+├── Dashboard/
+│   ├── CreateDashboardChartRequest.cs
+│   └── ReorderRequest.cs
+└── User/
+    ├── UpdateProfileRequest.cs
+    └── UpdateSettingsRequest.cs
+```
+
+**Why DTOs instead of using models directly?**
+- Models have navigation properties (e.g., `Workout.WorkoutExercises`) that cause infinite recursion in JSON serialization
+- DTOs expose only what the client needs (no internal IDs, no server-managed fields)
+- Request DTOs can omit fields the server sets automatically (like `UserId`)
+
+### AutoMapper (entity ↔ DTO conversion)
+
+AutoMapper eliminates manual mapping code. Each domain has a Profile class:
 
 ```csharp
-// What the client sends:
-public class CreateWorkoutRequest
+// Mappings/ExerciseProfile.cs
+public class ExerciseProfile : Profile
 {
-    public DateTime Date { get; set; }
-    public string? Notes { get; set; }
-    public decimal? BodyWeight { get; set; }
-    public List<WorkoutExerciseRequest> Exercises { get; set; }
-}
-
-// What's stored in the database:
-public class Workout
-{
-    public int Id { get; set; }           // Auto-generated
-    public int UserId { get; set; }       // Set from JWT
-    public ICollection<WorkoutExercise> WorkoutExercises { get; set; }  // Navigation property
+    public ExerciseProfile()
+    {
+        CreateMap<ExerciseRequest, Exercise>();
+        CreateMap<Exercise, ExerciseResponse>();
+    }
 }
 ```
 
-The controller transforms between these two shapes.
+In controllers, mapping is one line:
+```csharp
+var exercise = _mapper.Map<Exercise>(request);  // DTO → Entity
+```
+
+### DI (Dependency Injection)
+
+ASP.NET creates and manages service instances. In `Program.cs`:
+```csharp
+builder.Services.AddScoped<ExercisesService>();   // One instance per HTTP request
+builder.Services.AddScoped<WorkoutsService>();
+builder.Services.AddAutoMapper(typeof(Program));  // Scan for Profile classes
+```
+
+Controllers receive dependencies via constructor injection:
+```csharp
+public ExercisesController(ExercisesService exercisesService, UserManager<User> userManager, IMapper mapper)
+```
+
+### N+1 Query Fix (DashboardService)
+
+**Before (N+1 problem):**
+```csharp
+foreach (var chart in charts) {
+    var data = await GetChartDataAsync(chart);  // ← 1 query per chart = N+1!
+}
+```
+
+**After (batch loading):**
+```csharp
+// Load all workout data in one query, compute per chart in memory
+var allWorkouts = await _context.WorkoutExercises
+    .Where(we => chartIds.Contains(we.WorkoutId))
+    .ToListAsync();  // ← 1 query total
+```
 
 ---
 
-## 4. Frontend (Angular)
+## 3. Frontend Architecture (Angular 22)
 
-### What is Angular?
+### Folder Structure
 
-Angular is a TypeScript framework for building single-page applications (SPAs). Instead of loading separate HTML pages for each screen, Angular loads one HTML page and dynamically swaps content using JavaScript.
+```
+src/app/
+├── pages/                  Route-level components (each = one URL)
+│   ├── login/              /login
+│   ├── register/           /register
+│   ├── workout-list/       /workouts
+│   ├── workout-form/       /workouts/new, /workouts/:id/edit
+│   ├── preset-list/        /presets
+│   ├── preset-form/        /presets/new, /presets/:id/edit
+│   ├── exercise-list/      /exercises
+│   ├── exercise-form/      /exercises/new, /exercises/:id/edit
+│   ├── progress/           /progress (charts dashboard)
+│   └── settings/           /settings (profile, theme)
+├── components/             Shared child components (used by pages)
+│   ├── chart-tile/         Single chart card with Chart.js
+│   ├── chart-editor/       Chart config modal
+│   └── onboarding-guide/   First-time user guide overlay
+├── models/                 TypeScript interfaces (one per file)
+│   ├── exercise.model.ts   Exercise, DurationUnit
+│   ├── workout.model.ts    Workout, WorkoutExercise
+│   ├── preset.model.ts     Preset, PresetExercise
+│   ├── dashboard.model.ts  DashboardChart, ChartData, ChartSummary
+│   ├── user.model.ts       UserProfile
+│   └── auth.model.ts       User
+├── services/               HTTP services (one per domain)
+│   ├── exercise.service.ts
+│   ├── workout.service.ts
+│   ├── preset.service.ts
+│   ├── dashboard.service.ts
+│   ├── settings.service.ts
+│   └── auth.service.ts
+├── guards/                 Route protection
+│   └── auth.guard.ts       Redirects to /login if not authenticated
+├── interceptors/           HTTP request modification
+│   └── auth.interceptor.ts Attaches JWT token to all requests
+├── app.config.ts           Providers, Chart.js setup, interceptor registration
+├── app.routes.ts           URL → component mapping (lazy-loaded)
+└── app.ts / app.html       Root component (nav bar + router-outlet)
+```
 
-### Key Angular concepts
+### Components
 
-**Components:** Reusable UI pieces. Each component has:
-- A TypeScript class (logic)
-- An HTML template (markup)
-- Optional CSS (styling)
+Each component has three files:
+- **`.ts`** — TypeScript class with logic, state, and service calls
+- **`.html`** — Template with Angular syntax (`@if`, `@for`, `[(ngModel)]`)
+- **`.css`** — Component-scoped styles
 
 ```typescript
 @Component({
-  selector: 'app-exercise-list',      // Used in HTML as <app-exercise-list>
-  standalone: true,                    // No NgModule needed (modern pattern)
-  templateUrl: './exercise-list.html', // The HTML template
+  selector: 'app-exercise-list',
+  standalone: true,                          // No NgModule needed (Angular 22 default)
+  imports: [CommonModule, RouterModule],
+  templateUrl: './exercise-list.html'
 })
 export class ExerciseList implements OnInit {
-  exercises: Exercise[] = [];          // Component state
+  exercises: Exercise[] = [];               // Component state
   
-  constructor(private exerciseService: ExerciseService) {}  // Inject dependencies
+  constructor(
+    private exerciseService: ExerciseService,  // Injected service
+    private cdr: ChangeDetectorRef            // For zoneless change detection
+  ) {}
   
-  ngOnInit() {                        // Runs when component loads
+  ngOnInit() {
     this.exerciseService.getAll().subscribe(exercises => {
-      this.exercises = exercises;      // Update state
+      this.exercises = exercises;
+      this.cdr.markForCheck();  // ← Tell Angular to re-render
     });
   }
 }
 ```
 
-**Services:** Singleton classes that handle data fetching and business logic. They're injected into components:
+### Services (HTTP layer)
+
+Services wrap Angular's `HttpClient` and return `Observable`s:
 
 ```typescript
-@Injectable({ providedIn: 'root' })  // Singleton — one instance shared everywhere
-export class WorkoutService {
-  private apiUrl = '/api/workouts';
+@Injectable({ providedIn: 'root' })  // Singleton — one instance everywhere
+export class ExerciseService {
+  private apiUrl = '/api/exercises';
   
-  constructor(private http: HttpClient) {}  // Angular's HTTP client
+  constructor(private http: HttpClient) {}
   
-  getAll(): Observable<Workout[]> {
-    return this.http.get<Workout[]>(this.apiUrl);  // Returns an Observable
+  getAll(): Observable<Exercise[]> {
+    return this.http.get<Exercise[]>(this.apiUrl);
+  }
+  
+  create(exercise: Partial<Exercise>): Observable<Exercise> {
+    return this.http.post<Exercise>(this.apiUrl, exercise);
   }
 }
 ```
 
-**Routing:** Maps URLs to components:
+### Models (TypeScript interfaces)
+
+Interfaces define the shape of data flowing between services and components:
+
+```typescript
+// models/exercise.model.ts
+export type DurationUnit = 'seconds' | 'minutes' | 'hours';
+
+export interface Exercise {
+  id: number;
+  name: string;
+  muscleGroup: string;
+  isDuration: boolean;
+  durationUnit: DurationUnit;
+  isDefault: boolean;
+}
+```
+
+Components import from models, not from services:
+```typescript
+import { Exercise } from '../../models/exercise.model';
+```
+
+### Routing
+
+Routes map URLs to lazy-loaded components:
 
 ```typescript
 const routes: Routes = [
-  { path: 'workouts', loadComponent: () => import('./workout-list').then(m => m.WorkoutList) },
-  { path: 'workouts/new', loadComponent: () => import('./workout-form').then(m => m.WorkoutForm) },
-  { path: 'workouts/:id/edit', loadComponent: () => import('./workout-form').then(m => m.WorkoutForm) },
+  { path: '', redirectTo: '/progress', pathMatch: 'full' },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.Login) },
+  { path: 'workouts', loadComponent: () => import('./pages/workout-list/workout-list').then(m => m.WorkoutList), canActivate: [authGuard] },
+  { path: 'exercises', loadComponent: () => import('./pages/exercise-list/exercise-list').then(m => m.ExerciseList), canActivate: [authGuard] },
+  // ... more routes
 ];
 ```
 
-The `:id` part is a URL parameter — the `WorkoutForm` component reads it to know if it's creating or editing.
+**Key concepts:**
+- `loadComponent: () => import(...)` — **lazy loading**: JS for that page is only downloaded when the user navigates to it
+- `canActivate: [authGuard]` — redirects to `/login` if not authenticated
+- `:id` in path — URL parameter read by `ActivatedRoute`
 
-**Lazy loading:** `loadComponent: () => import(...)` means the JavaScript for that component is only downloaded when the user navigates to it. This makes the initial page load faster.
+### Change Detection (zoneless Angular 22)
 
-### How the auth interceptor works
+Angular 22 defaults to **zoneless** change detection. Async HTTP callbacks don't automatically trigger re-renders. Every component must call `markForCheck()`:
 
-Every HTTP request from Angular passes through the interceptor, which automatically adds the JWT token:
+```typescript
+this.exerciseService.getAll().subscribe({
+  next: (exercises) => {
+    this.exercises = exercises;
+    this.cdr.markForCheck();  // ← Without this, the template stays stale
+  }
+});
+```
+
+### Auth Interceptor
+
+Every HTTP request passes through the interceptor, which attaches the JWT token:
 
 ```typescript
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
+  if (req.url.includes('/api/auth/')) return next(req);  // Skip for login/register
   
-  // Skip auth for login/register
-  if (req.url.includes('/api/auth/')) {
-    return next(req);
-  }
-  
-  const token = authService.getToken();
+  const token = inject(AuthService).getToken();
   if (token) {
-    // Clone the request and add the Authorization header
-    req = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
-    });
+    req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }
   
   return next(req).pipe(
     catchError(err => {
       if (err.status === 401) {
-        authService.logout();  // Token expired — log out
+        inject(AuthService).logout();  // Token expired
+        inject(Router).navigate(['/login']);
       }
-      return throwError(err);
+      return throwError(() => err);
     })
   );
 };
 ```
 
-### How change detection works
+### Charts (Chart.js via ng2-charts)
 
-Angular automatically updates the HTML when component state changes. But async operations (HTTP calls) happen outside Angular's awareness. So we manually tell Angular to re-check:
-
-```typescript
-this.workoutService.getAll().subscribe({
-  next: (workouts) => {
-    this.workouts = workouts;
-    this.cdr.markForCheck();  // ← "Hey Angular, re-render the template"
-  }
-});
-```
-
-Every component uses this pattern. Without `markForCheck()`, the template would show stale data.
-
-### How charts work
-
-The progress page uses **Chart.js** (a JavaScript charting library) through **ng2-charts** (an Angular wrapper):
+The progress page uses **Chart.js** through **ng2-charts**:
 
 ```html
-<!-- In chart-tile.html -->
 <canvas baseChart
-        [type]="getChartType()"      <!-- 'line' or 'bar' -->
-        [data]="chartData"           <!-- labels + datasets -->
-        [options]="chartOptions">    <!-- colors, axes, etc. -->
+        [type]="'line'"
+        [data]="chartData"
+        [options]="chartOptions">
 </canvas>
 ```
 
-The data flow:
-1. Backend computes data points (date/value pairs) and returns them as JSON
-2. Angular component maps them into Chart.js format:
-   ```
-   { labels: ['07-20', '07-21', '07-22'], 
-     datasets: [{ data: [80, 82, 85] }] }
-   ```
-3. Chart.js renders a line/bar chart on the canvas element
+Data flow:
+1. Backend computes data points (date/value pairs) from workout history
+2. Frontend maps them into Chart.js format: `{ labels: [...], datasets: [{ data: [...] }] }`
+3. Chart.js renders a line/bar chart on the canvas
+
+### Theming (CSS Variables)
+
+The entire color scheme uses CSS custom properties:
+
+```css
+:root {                              /* Dark theme (default) */
+  --bg: #282828;
+  --fg: #ebdbb2;
+  --green: #b8bb26;
+}
+
+[data-theme="light"] {              /* Light theme */
+  --bg: #fbf1c7;
+  --fg: #3c3836;
+  --green: #98971a;
+}
+```
+
+Switching themes is just toggling an attribute on `<html>`. Every element using `var(--bg)` automatically updates.
 
 ---
 
-## 5. Database
+## 4. Database (PostgreSQL)
 
 ### Entity Relationship Diagram
 
 ```
-┌──────────┐     ┌──────────────┐     ┌──────────┐
-│   User   │────▶│ UserSettings │     │ Exercise │
-│          │     │ (1:1)        │     │          │
-│ Id       │     │ Theme        │     │ Id       │
-│ UserName │     │ RestTimer    │     │ Name ★   │
-│ Email    │     └──────────────┘     │ MuscleGrp│
-│ Weight   │                          │ IsDuration│
-│ Height   │                          │ IsDefault │
-└────┬─────┘                          └────┬─────┘
-     │                                     │
-     │ 1:*                                 │ *:1
-     │                                     │
-┌────┴──────┐     ┌──────────────────┐    │
-│  Workout  │────▶│ WorkoutExercise  │────┘
+┌──────────┐     ┌──────────────┐     ┌──────────────────┐
+│   User   │────▶│ UserSettings │     │    Exercise      │
+│          │     │ (1:1)        │     │                  │
+│ Id       │     │ Theme        │     │ Id               │
+│ UserName │     │ RestTimer    │     │ Name             │
+│ Email    │     └──────────────┘     │ MuscleGroup      │
+│ Weight   │                          │ IsDuration       │
+│ Height   │                          │ DurationUnit     │
+└────┬─────┘                          │ IsDefault        │
+     │                                │ UserId? ◀────────┼── nullable (null = default exercise)
+     │ 1:*                            └────────┬─────────┘
+     │                                          │ *:1
+     │                                          │
+┌────┴──────┐     ┌──────────────────┐          │
+│  Workout  │────▶│ WorkoutExercise  │──────────┘
 │           │     │                  │
 │ Date      │     │ Sets, Reps       │
 │ Notes     │     │ Weight, Duration │
-│ BodyWeight│     │ RestTime         │
+│ BodyWeight│     │ DurationUnit     │
+│ UserId    │     │ RestTime         │
 └───────────┘     └──────────────────┘
 
 ┌──────────┐     ┌──────────────────┐
 │  Preset  │────▶│ PresetExercise   │────▶ Exercise
 │          │     │                  │
 │ Name     │     │ DefaultSets      │
-│          │     │ DefaultReps      │
-│          │     │ DefaultWeight    │
-└──────────┘     └──────────────────┘
+│ UserId   │     │ DefaultReps      │
+└──────────┘     │ DefaultWeight    │
+                 │ DefaultDuration  │
+                 └──────────────────┘
 
 ┌──────────────────┐
 │ DashboardChart   │────▶ Exercise (optional)
 │                  │
 │ Label, Metric    │
 │ Period, ChartType│
-│ Position         │
+│ Position, UserId │
 └──────────────────┘
 ```
 
-### Why this design?
+### Entity Framework Core (ORM)
 
-**Why join tables (WorkoutExercise, PresetExercise)?**
-A workout contains multiple exercises, each with different sets/reps/weight. This is a many-to-many relationship with extra data — perfect for a join table.
-
-**Why UserSettings as a separate table?**
-Keeps preferences isolated from user identity. Can be extended without touching the User table.
-
-**Why DashboardChart stores config, not data?**
-Charts are computed on-the-fly from workout data. Storing the config (metric, period, exercise) lets users customize charts without us pre-computing and storing results.
-
-### How EF Core works
-
-Entity Framework Core is an **Object-Relational Mapper (ORM)**. It maps C# classes to database tables:
+EF Core maps C# classes to database tables:
 
 ```csharp
 // This C# class...
 public class Workout {
     public int Id { get; set; }
+    public int UserId { get; set; }
     public string? Notes { get; set; }
     public ICollection<WorkoutExercise> WorkoutExercises { get; set; }
 }
@@ -448,39 +565,60 @@ public class Workout {
 // ...maps to this SQL table:
 // CREATE TABLE "Workouts" (
 //     "Id" SERIAL PRIMARY KEY,
-//     "Notes" VARCHAR(500),
-//     "UserId" INTEGER REFERENCES "Users"("Id")
+//     "UserId" INTEGER REFERENCES "Users"("Id"),
+//     "Notes" VARCHAR(500)
 // );
 ```
 
 When you write `_context.Workouts.Add(workout)`, EF Core generates the INSERT SQL automatically.
 
+### GymDbContext
+
+The DbContext defines which tables exist and how entities relate:
+
+```csharp
+public class GymDbContext : IdentityDbContext<User, IdentityRole<int>, int>
+{
+    public DbSet<Exercise> Exercises => Set<Exercise>();
+    public DbSet<Workout> Workouts => Set<Workout>();
+    public DbSet<Preset> Presets => Set<Preset>();
+    public DbSet<DashboardChart> DashboardCharts => Set<DashboardChart>();
+    // ...
+}
+```
+
 ### Migrations
 
-Migrations track database schema changes. When you add a new model property:
-```
-dotnet ef migrations add AddDashboardCharts
-dotnet ef database update
+Migrations track database schema changes:
+
+```bash
+dotnet ef migrations add AddExerciseUserId    # Generate migration code
+dotnet ef database update                     # Apply to database
 ```
 
-EF Core generates C# code that describes the schema change, and applies it to the database. On app startup, `context.Database.Migrate()` applies any pending migrations automatically.
+On app startup, `context.Database.Migrate()` applies any pending migrations automatically.
+
+### Seed Data
+
+31 default exercises are seeded on first run (`Data/SeedData.cs`). These have `IsDefault = true` and no `UserId`, making them visible to all users.
 
 ---
 
-## 6. Authentication
+## 5. Authentication
 
-### The complete auth flow
+### The Complete Auth Flow
 
 ```
 REGISTER:
-1. User fills form: username, email, password
-2. POST /api/auth/register with form data
-3. Backend: create User record (password is hashed with PBKDF2)
-4. Backend: create UserSettings with defaults
-5. Backend: generate JWT token with userId, username, email
-6. Return token to frontend
-7. Frontend: store token in localStorage
-8. Frontend: redirect to /workouts
+1. User fills form: username, email, password, confirmPassword
+2. POST /api/auth/register
+3. Backend validates: username unique, passwords match, min length
+4. Backend: create User record (password hashed with PBKDF2)
+5. Backend: create UserSettings with defaults (theme=dark, restTimer=90s)
+6. Backend: generate JWT token (userId, username, email; expires in 60 min)
+7. Return token to frontend
+8. Frontend: store token in localStorage
+9. Frontend: redirect to /progress
 
 LOGIN:
 1. User enters email + password
@@ -488,7 +626,7 @@ LOGIN:
 3. Backend: find user by email, verify password hash
 4. Backend: generate JWT token
 5. Return token
-6. Frontend: store token, redirect to /workouts
+6. Frontend: store token, redirect to /progress
 
 SUBSEQUENT REQUESTS:
 1. Frontend interceptor reads token from localStorage
@@ -498,7 +636,7 @@ SUBSEQUENT REQUESTS:
 5. Controller processes request for that user
 ```
 
-### What's in a JWT token?
+### JWT Token Structure
 
 ```
 Header:    { "alg": "HS256" }
@@ -506,76 +644,68 @@ Payload:   { "nameid": "42",          ← user ID
               "name": "john",          ← username
               "email": "john@example.com",
               "exp": 1722000000,       ← expiration (60 min)
-              "iss": "GymTracker" }    ← who issued it
+              "iss": "GymTracker" }    ← issuer
 Signature: HMAC-SHA256(header + payload, secret_key)
 ```
 
 The token is **signed**, not encrypted. Anyone can read the payload, but nobody can forge it without the secret key.
 
-### Why JWT?
+### Password Hashing
 
-- **Stateless:** The server doesn't need to store sessions. The token contains all needed info.
-- **Scalable:** Multiple server instances can all validate the same token.
-- **Standard:** Works across different languages/frameworks.
-
-### Password hashing
-
-Passwords are never stored in plain text. ASP.NET Identity uses PBKDF2 (Password-Based Key Derivation Function 2):
+Passwords are never stored in plain text. ASP.NET Identity uses PBKDF2:
 ```
 Plain password: "Admin123!"
      ↓ PBKDF2 (600,000 iterations + salt)
 Hashed password: "AQAAAAEAACcQAAAAENx..."
 ```
 
-Even if someone steals the database, they can't reverse the hashes to get passwords.
-
 ---
 
-## 7. API Endpoints
+## 6. API Endpoints
 
 ### Auth (no login required)
 
 | Method | Endpoint | Body | Response |
 |--------|----------|------|----------|
-| POST | `/api/auth/register` | `{ username, email, password, weight?, height? }` | `{ token, userId }` |
+| POST | `/api/auth/register` | `{ username, email, password, confirmPassword, weight?, height? }` | `{ token, userId }` |
 | POST | `/api/auth/login` | `{ email, password }` | `{ token, userId }` |
 
-### Exercises
+### Exercises (user-scoped)
 
 | Method | Endpoint | Body | Response |
 |--------|----------|------|----------|
-| GET | `/api/exercises` | — | `[{ id, name, muscleGroup, isDuration, isDefault }]` |
-| GET | `/api/exercises/:id` | — | `{ id, name, ... }` |
-| POST | `/api/exercises` | `{ name, muscleGroup, isDuration }` | Created exercise |
-| PUT | `/api/exercises/:id` | `{ name, muscleGroup, isDuration }` | Updated exercise |
-| DELETE | `/api/exercises/:id` | — | 204 No Content |
+| GET | `/api/exercises` | — | Default + user's exercises |
+| GET | `/api/exercises/:id` | — | Single exercise (if owned or default) |
+| POST | `/api/exercises` | `{ name, muscleGroup, isDuration, durationUnit }` | Created exercise |
+| PUT | `/api/exercises/:id` | `{ name, muscleGroup, isDuration, durationUnit }` | Updated (only if owned) |
+| DELETE | `/api/exercises/:id` | — | 204 (only if owned, not default, not in use) |
 
-### Workouts
+### Workouts (user-scoped)
 
 | Method | Endpoint | Body | Response |
 |--------|----------|------|----------|
-| GET | `/api/workouts` | — | `[{ id, date, notes, bodyWeight, workoutExercises }]` |
+| GET | `/api/workouts` | — | User's workouts |
 | GET | `/api/workouts/:id` | — | Single workout |
-| POST | `/api/workouts` | `{ date, notes, bodyWeight, exercises: [...] }` | Created workout |
+| POST | `/api/workouts` | `{ date, notes, bodyWeight, workoutExercises }` | Created workout |
 | POST | `/api/workouts/from-preset/:presetId` | — | Workout created from preset |
-| PUT | `/api/workouts/:id` | `{ date, notes, bodyWeight, exercises: [...] }` | Updated workout |
+| PUT | `/api/workouts/:id` | `{ date, notes, bodyWeight, workoutExercises }` | Updated workout |
 | DELETE | `/api/workouts/:id` | — | 204 |
 
-### Presets
+### Presets (user-scoped)
 
 | Method | Endpoint | Body | Response |
 |--------|----------|------|----------|
-| GET | `/api/presets` | — | `[{ id, name, presetExercises }]` |
-| POST | `/api/presets` | `{ name, exercises: [...] }` | Created preset |
-| PUT | `/api/presets/:id` | `{ name, exercises: [...] }` | Updated preset |
+| GET | `/api/presets` | — | User's presets |
+| POST | `/api/presets` | `{ name, presetExercises }` | Created preset |
+| PUT | `/api/presets/:id` | `{ name, presetExercises }` | Updated preset |
 | DELETE | `/api/presets/:id` | — | 204 |
 
-### Dashboard
+### Dashboard (user-scoped)
 
 | Method | Endpoint | Body | Response |
 |--------|----------|------|----------|
-| GET | `/api/dashboard` | — | `[{ id, label, metric, period, chartType, data: { points, summary } }]` |
-| POST | `/api/dashboard` | `{ label, metric, exerciseId?, period, chartType }` | Created chart with data |
+| GET | `/api/dashboard` | — | Charts with computed data |
+| POST | `/api/dashboard` | `{ label, metric, exerciseId?, period, chartType }` | Created chart |
 | PUT | `/api/dashboard/:id` | `{ label, metric, exerciseId?, period, chartType }` | Updated chart |
 | DELETE | `/api/dashboard/:id` | — | 204 |
 | PUT | `/api/dashboard/reorder` | `[{ id, position }]` | 200 |
@@ -587,164 +717,180 @@ Even if someone steals the database, they can't reverse the hashes to get passwo
 | GET | `/api/stats` | — | Aggregated stats |
 | POST | `/api/stats/chart-data` | `{ metric, exerciseId?, period }` | `{ points, summary }` |
 
+### User
+
+| Method | Endpoint | Body | Response |
+|--------|----------|------|----------|
+| GET | `/api/user/profile` | — | User profile |
+| PUT | `/api/user/profile` | `{ weight?, height? }` | Updated profile |
+| PUT | `/api/user/settings` | `{ theme, restTimer }` | Updated settings |
+
 ---
 
-## 8. Key Patterns Explained
+## 7. Key Patterns
 
-### Pattern: Delete-and-reinsert for nested collections
+### User Ownership
 
-When updating a workout's exercises, the backend doesn't try to figure out which exercises were added/removed/modified. It just deletes all existing `WorkoutExercise` rows and inserts the new ones:
+Every user-scoped entity (Workout, Preset, Exercise, DashboardChart) has a `UserId` field. Services always filter by the current user:
 
 ```csharp
-// Remove old exercises
+// Service filters queries by user
+.Where(e => e.IsDefault || e.UserId == userId)
+
+// Service rejects unauthorized updates
+if (existing.UserId != userId) return null;
+
+// Controller returns 403 for cross-user access
+if (!await _exercisesService.IsOwnedByAsync(id, UserId))
+    return Forbid();
+```
+
+Default exercises (`IsDefault = true`) have `UserId = null` and are visible to all users.
+
+### Delete-and-Reinsert for Nested Collections
+
+When updating a workout's exercises, the backend deletes all existing `WorkoutExercise` rows and inserts the new ones:
+
+```csharp
 var existing = _context.WorkoutExercises.Where(we => we.WorkoutId == id);
 _context.WorkoutExercises.RemoveRange(existing);
 
-// Add new exercises
 foreach (var e in request.Exercises) {
     workout.WorkoutExercises.Add(new WorkoutExercise { ... });
 }
 await _context.SaveChangesAsync();
 ```
 
-**Why?** It's simpler and avoids complex diffing logic. For a gym app with ~10 exercises per workout, performance is not a concern.
+**Why?** Simpler than diffing which exercises were added/removed/modified. Performance is fine for ~10 exercises per workout.
 
-### Pattern: Profile weight auto-sync
+### Profile Weight Auto-Sync
 
-When a workout is created or updated with a body weight, the backend finds the most recent workout by date and syncs that weight to the user's profile:
+When a workout is created with a body weight, the most recent workout's weight is synced to the user's profile:
 
 ```csharp
-private async Task SyncProfileWeight(int userId)
-{
-    var latestWeight = await _context.Workouts
-        .Where(w => w.UserId == userId && w.BodyWeight.HasValue)
-        .OrderByDescending(w => w.Date)     // Most recent by USER-SET date
-        .Select(w => w.BodyWeight)
-        .FirstOrDefaultAsync();
-    
-    user.Weight = latestWeight;
-}
+var latestWeight = await _context.Workouts
+    .Where(w => w.UserId == userId && w.BodyWeight.HasValue)
+    .OrderByDescending(w => w.Date)  // By user-set date, not insertion order
+    .Select(w => w.BodyWeight)
+    .FirstOrDefaultAsync();
 ```
 
-**Why by date, not insertion order?** Users can log workouts for past dates. The profile should show the weight from the most recent workout date, not the most recently created record.
+### Chart Computation On-the-Fly
 
-### Pattern: Chart computation on-the-fly
+Charts are computed fresh every time the dashboard loads:
+1. Query all relevant `WorkoutExercise` records
+2. Group by day
+3. Compute the metric (weight, volume, est1RM, duration, etc.)
+4. Return data points + summary
 
-Charts aren't pre-computed and stored. Every time the dashboard loads, the backend:
-1. Queries all relevant `WorkoutExercise` records
-2. Groups them by day
-3. Computes the metric (weight, volume, est1RM, etc.)
-4. Returns data points + summary
+No caching, no stale data. The dataset is small enough (one user's workouts) that computation is instant.
 
-**Why?** Fresh data every time. No stale cache to invalidate. The dataset is small enough (one user's workouts) that computation is instant.
+### Scoped DI Services
 
-### Pattern: Functional guards and interceptors
-
-Modern Angular uses plain functions instead of classes for guards and interceptors:
-
-```typescript
-// Old way (Angular < 15):
-@Injectable() class AuthGuard implements CanActivate { ... }
-
-// New way (Angular 15+):
-export const authGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  return authService.isLoggedIn() ? true : inject(Router).createUrlTree(['/login']);
-};
+All services use `AddScoped<>` — one instance per HTTP request:
+```csharp
+builder.Services.AddScoped<ExercisesService>();  // Created per request, disposed after
 ```
 
-**Why?** Simpler, less boilerplate, works better with tree-shaking.
-
-### Pattern: CSS variables for theming
-
-The entire color scheme is defined in CSS custom properties:
-
-```css
-:root {
-  --bg: #282828;
-  --fg: #ebdbb2;
-  --green: #b8bb26;
-}
-
-[data-theme="light"] {
-  --bg: #fbf1c7;
-  --fg: #3c3836;
-  --green: #98971a;
-}
-```
-
-Switching themes is just toggling an attribute on `<html>`. Every element using `var(--bg)` automatically updates.
+This means services can safely hold references to `DbContext` (which is also scoped).
 
 ---
 
-## 9. File Structure
+## 8. File Structure
 
 ```
 backend/
-├── Program.cs                    ← Entry point, service registration, middleware
-├── appsettings.json              ← Config (DB connection, JWT secret)
-├── GymTracker.csproj             ← NuGet packages
-├── Controllers/
-│   ├── AuthController.cs         ← Login, register
-│   ├── UserController.cs         ← Profile, settings
-│   ├── ExercisesController.cs    ← Exercise CRUD
-│   ├── WorkoutsController.cs     ← Workout CRUD
-│   ├── PresetsController.cs      ← Preset CRUD
-│   ├── StatsController.cs        ← Aggregated stats
-│   └── DashboardController.cs    ← Chart config CRUD
-├── Models/
-│   ├── User.cs                   ← User entity (extends IdentityUser)
-│   ├── UserSettings.cs           ← Theme, preferences
-│   ├── Exercise.cs               ← Exercise catalog
-│   ├── Workout.cs                ← Workout session
-│   ├── WorkoutExercise.cs        ← Join: workout ↔ exercise
-│   ├── Preset.cs                 ← Workout template
-│   ├── PresetExercise.cs         ← Join: preset ↔ exercise
-│   └── DashboardChart.cs         ← Chart configuration
+├── Program.cs                     Entry point, DI registration, middleware
+├── appsettings.json               Config (DB connection, JWT secret)
+├── GymTracker.csproj              NuGet packages
+├── Controllers/                   Thin HTTP handlers
+│   ├── AuthController.cs          Login, register
+│   ├── UserController.cs          Profile, settings
+│   ├── ExercisesController.cs     Exercise CRUD
+│   ├── WorkoutsController.cs      Workout CRUD
+│   ├── PresetsController.cs       Preset CRUD
+│   ├── StatsController.cs         Aggregated stats
+│   └── DashboardController.cs     Chart config CRUD
+├── Services/                      Business logic + DB access
+│   ├── ExercisesService.cs
+│   ├── WorkoutsService.cs
+│   ├── PresetsService.cs
+│   ├── StatsService.cs
+│   ├── DashboardService.cs
+│   ├── UserService.cs
+│   ├── JwtService.cs              JWT token generation
+│   └── ChartService.cs            Chart data computation
+├── DTOs/                          Request/response shapes
+│   ├── Auth/                      RegisterRequest, LoginRequest
+│   ├── Workouts/                  CreateWorkoutRequest, WorkoutExerciseRequest, ...
+│   ├── Exercises/                 ExerciseRequest
+│   ├── Presets/                   CreatePresetRequest, PresetExerciseRequest, ...
+│   ├── Stats/                     StatsResponse
+│   ├── Dashboard/                 CreateDashboardChartRequest, ReorderRequest, ...
+│   └── User/                      UpdateProfileRequest, UpdateSettingsRequest
+├── Mappings/                      AutoMapper profiles
+│   ├── ExerciseProfile.cs
+│   ├── WorkoutProfile.cs
+│   ├── PresetProfile.cs
+│   └── UserProfile.cs
+├── Models/                        Database entities
+│   ├── User.cs                    Extends IdentityUser (Weight, Height, collections)
+│   ├── UserSettings.cs            Theme, restTimer
+│   ├── Exercise.cs                Name, MuscleGroup, IsDuration, DurationUnit, IsDefault, UserId?
+│   ├── DurationUnit.cs            Enum: Seconds, Minutes, Hours
+│   ├── Workout.cs                 Date, Notes, BodyWeight, UserId
+│   ├── WorkoutExercise.cs         Sets, Reps, Weight, Duration, DurationUnit, RestTime
+│   ├── Preset.cs                  Name, UserId
+│   ├── PresetExercise.cs          DefaultSets, DefaultReps, DefaultWeight, DefaultDuration
+│   └── DashboardChart.cs          Label, Metric, Period, ChartType, Position, UserId
 ├── Data/
-│   ├── GymDbContext.cs           ← EF Core database context
-│   └── SeedData.cs               ← 31 default exercises
-├── Services/
-│   ├── JwtService.cs             ← JWT token generation
-│   └── ChartService.cs           ← Chart data computation
-└── Migrations/                   ← Database schema history
+│   ├── GymDbContext.cs            EF Core context (IdentityDbContext<User>)
+│   └── SeedData.cs                31 default exercises
+└── Migrations/                    Database schema history
 
 frontend/
 ├── src/
-│   ├── main.ts                   ← Bootstrap
-│   ├── index.html                ← HTML shell
-│   ├── styles.css                ← Global Gruvbox theme
-│   ├── proxy.conf.json           ← Dev proxy to backend
+│   ├── main.ts                    Bootstrap
+│   ├── index.html                 HTML shell
+│   ├── styles.css                 Global Gruvbox theme + base styles
+│   ├── proxy.conf.json            Dev proxy: /api/* → localhost:5000
 │   └── app/
-│       ├── app.config.ts         ← Providers, Chart.js setup
-│       ├── app.routes.ts         ← All routes
-│       ├── app.ts / .html / .css ← Root component, nav
-│       ├── auth/
-│       │   ├── auth.service.ts       ← Login, register, token management
-│       │   ├── auth.interceptor.ts   ← Auto-attach JWT to requests
-│       │   ├── auth.guard.ts         ← Protect routes
-│       │   ├── login/                ← Login page
-│       │   └── register/             ← Registration page
-│       ├── workouts/
-│       │   ├── workout.service.ts    ← Workout API calls
-│       │   ├── workout-list/         ← Workout log page
-│       │   └── workout-form/         ← Create/edit workout
-│       ├── exercises/
-│       │   ├── exercise.service.ts   ← Exercise API calls
-│       │   ├── exercise-list/        ← Exercise table
-│       │   └── exercise-form/        ← Create/edit exercise
-│       ├── presets/
-│       │   ├── preset.service.ts     ← Preset API calls
-│       │   ├── preset-list/          ← Preset cards
-│       │   └── preset-form/          ← Create/edit preset
-│       ├── progress/
-│       │   ├── dashboard.service.ts  ← Dashboard API calls
-│       │   ├── progress-page.ts      ← Dashboard grid
-│       │   ├── chart-tile.ts         ← Single chart card
-│       │   └── chart-editor.ts       ← Chart config modal
-│       └── settings/
-│           ├── settings.service.ts   ← Profile/settings API
-│           └── settings/             ← Profile, theme, logout
+│       ├── app.config.ts          Providers, Chart.js setup, interceptor
+│       ├── app.routes.ts          URL → component mapping (lazy-loaded)
+│       ├── app.ts / .html / .css   Root component (nav + router-outlet)
+│       ├── pages/                  Route-level components
+│       │   ├── login/
+│       │   ├── register/
+│       │   ├── workout-list/
+│       │   ├── workout-form/
+│       │   ├── preset-list/
+│       │   ├── preset-form/
+│       │   ├── exercise-list/
+│       │   ├── exercise-form/
+│       │   ├── progress/
+│       │   └── settings/
+│       ├── components/             Shared child components
+│       │   ├── chart-tile/
+│       │   ├── chart-editor/
+│       │   └── onboarding-guide/
+│       ├── models/                 TypeScript interfaces
+│       │   ├── exercise.model.ts
+│       │   ├── workout.model.ts
+│       │   ├── preset.model.ts
+│       │   ├── dashboard.model.ts
+│       │   ├── user.model.ts
+│       │   └── auth.model.ts
+│       ├── services/               HTTP services
+│       │   ├── exercise.service.ts
+│       │   ├── workout.service.ts
+│       │   ├── preset.service.ts
+│       │   ├── dashboard.service.ts
+│       │   ├── settings.service.ts
+│       │   └── auth.service.ts
+│       ├── guards/
+│       │   └── auth.guard.ts
+│       └── interceptors/
+│           └── auth.interceptor.ts
 ```
 
 ---
@@ -755,13 +901,15 @@ frontend/
 1. Add a model class in `Models/`
 2. Add a DbSet in `GymDbContext.cs`
 3. Create a migration: `dotnet ef migrations add <Name>`
-4. Create a controller (or add to existing) in `Controllers/`
-5. Register any new services in `Program.cs`
+4. Add a DTO in `DTOs/<Domain>/`
+5. Add an AutoMapper profile in `Mappings/`
+6. Add a service method in `Services/`
+7. Add a controller method in `Controllers/`
 
 ### To add a new Angular page:
-1. Create component files (`.ts`, `.html`, `.css`)
+1. Create component files (`.ts`, `.html`, `.css`) in `pages/<name>/`
 2. Add a route in `app.routes.ts`
-3. Create a service method for API calls
+3. Create a service method for API calls (or a new service in `services/`)
 4. Add a nav link in `app.html` (if needed)
 
 ### To change the color scheme:
