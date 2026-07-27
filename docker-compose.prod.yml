@@ -1,6 +1,6 @@
 services:
   gym-tracker:
-    image: ghcr.io/amir1330/testexercise:latest
+    image: ghcr.io/amir1330/gymtracker:latest
     container_name: gym-tracker
     restart: unless-stopped
     environment:
