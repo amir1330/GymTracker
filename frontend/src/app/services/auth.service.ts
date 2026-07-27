@@ -31,7 +31,7 @@ export class AuthService {
     }
   }
 
-  register(data: { username: string; email: string; password: string; confirmPassword: string; weight?: number; height?: number }): Observable<any> {
+  register(data: { email: string; password: string; confirmPassword: string; weight?: number }): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, data).pipe(
       tap((response: any) => {
         localStorage.setItem('token', response.token);

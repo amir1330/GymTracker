@@ -24,7 +24,6 @@
             }
           </div>
           <div class="preset-actions">
-            <button (click)="createWorkoutFromPreset(preset.id)" class="btn btn-primary">Start Workout</button>
             <a [routerLink]="['/presets', preset.id, 'edit']" class="btn btn-secondary">Edit</a>
             <button (click)="deletePreset(preset.id)" class="btn btn-danger">Delete</button>
           </div>

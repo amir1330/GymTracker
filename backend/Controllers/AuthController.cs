@@ -41,18 +41,17 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email already registered" });
         }
 
-        existingUser = await _userManager.FindByNameAsync(request.Username);
-        if (existingUser != null)
+        var username = request.Email.Split('@')[0];
+        if (await _userManager.FindByNameAsync(username) != null)
         {
-            return BadRequest(new { message = "Username already taken" });
+            username = username + Guid.NewGuid().ToString("N")[..4];
         }
 
         var user = new User
         {
-            UserName = request.Username,
+            UserName = username,
             Email = request.Email,
-            Weight = request.Weight,
-            Height = request.Height
+            Weight = request.Weight
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -66,7 +65,7 @@ public class AuthController : ControllerBase
             UserId = user.Id,
             RestTimerEnabled = true,
             DefaultRestTimeSeconds = 90,
-            Theme = "dark"
+            Theme = "auto"
         });
         await _context.SaveChangesAsync();
 

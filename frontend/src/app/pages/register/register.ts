@@ -11,22 +11,19 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.html'
 })
 export class Register {
-  username = '';
   email = '';
   password = '';
   confirmPassword = '';
   weight?: number;
-  height?: number;
   error = '';
 
   constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
 
   onSubmit(): void {
     this.error = '';
-    const username = this.username.trim();
     const email = this.email.trim();
-    if (!username || !email || !this.password) {
-      this.error = 'Username, email and password are required';
+    if (!email || !this.password) {
+      this.error = 'Email and password are required';
       return;
     }
     if (this.password !== this.confirmPassword) {
@@ -34,12 +31,10 @@ export class Register {
       return;
     }
     this.authService.register({
-      username,
       email,
       password: this.password,
       confirmPassword: this.confirmPassword,
-      weight: this.weight,
-      height: this.height
+      weight: this.weight
     }).subscribe({
       next: () => this.router.navigate(['/workouts']),
       error: (err) => {

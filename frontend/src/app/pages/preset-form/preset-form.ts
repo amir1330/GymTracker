@@ -66,7 +66,8 @@ export class PresetForm implements OnInit {
 
   getExercise(exerciseId?: number): Exercise | undefined {
     if (!exerciseId) return undefined;
-    return this.exercises.find(e => e.id === exerciseId);
+    const id = Number(exerciseId);
+    return this.exercises.find(e => e.id === id);
   }
 
   onExerciseTypeChange(pe: PresetExercise): void {

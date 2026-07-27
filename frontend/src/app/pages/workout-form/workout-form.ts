@@ -83,7 +83,8 @@ export class WorkoutForm implements OnInit {
 
   getExercise(exerciseId?: number): Exercise | undefined {
     if (!exerciseId) return undefined;
-    return this.exercises.find(e => e.id === exerciseId);
+    const id = Number(exerciseId);
+    return this.exercises.find(e => e.id === id);
   }
 
   onExerciseTypeChange(we: Partial<WorkoutExercise>): void {

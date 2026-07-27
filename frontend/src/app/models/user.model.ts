@@ -3,7 +3,6 @@ export interface UserProfile {
   userName: string;
   email: string;
   weight?: number;
-  height?: number;
   settings?: {
     theme: string;
   };

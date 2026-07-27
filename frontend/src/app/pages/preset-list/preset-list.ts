@@ -1,9 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { PresetService } from '../../services/preset.service';
 import { Preset, PresetExercise } from '../../models/preset.model';
-import { WorkoutService } from '../../services/workout.service';
 
 @Component({
   selector: 'app-preset-list',
@@ -18,8 +17,6 @@ export class PresetList implements OnInit {
 
   constructor(
     private presetService: PresetService,
-    private workoutService: WorkoutService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -54,14 +51,6 @@ export class PresetList implements OnInit {
       parts.push(`@${pe.defaultWeight}kg`);
     }
     return `(${parts.join(' ')})`;
-  }
-
-  createWorkoutFromPreset(presetId: number): void {
-    this.error = '';
-    this.workoutService.createFromPreset(presetId).subscribe({
-      next: (workout) => this.router.navigate(['/workouts', workout.id]),
-      error: (err) => { this.error = this.extractError(err); this.cdr.markForCheck(); }
-    });
   }
 
   deletePreset(id: number): void {

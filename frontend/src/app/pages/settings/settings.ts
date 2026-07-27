@@ -15,7 +15,6 @@ import { AuthService } from '../../services/auth.service';
 export class Settings implements OnInit, OnDestroy {
   profile: UserProfile | null = null;
   weight?: number;
-  height?: number;
   theme = 'auto';
   success = '';
   error = '';
@@ -45,7 +44,6 @@ export class Settings implements OnInit, OnDestroy {
       next: (profile) => {
         this.profile = profile;
         this.weight = profile.weight;
-        this.height = profile.height;
         if (profile.settings?.theme) {
           this.theme = profile.settings.theme;
         }
@@ -64,7 +62,7 @@ export class Settings implements OnInit, OnDestroy {
   updateProfile(): void {
     this.success = '';
     this.error = '';
-    this.settingsService.updateProfile({ weight: this.weight, height: this.height }).subscribe({
+    this.settingsService.updateProfile({ weight: this.weight }).subscribe({
       next: (updated) => {
         this.profile = { ...this.profile!, ...updated };
         this.success = 'Profile updated';
