@@ -16,6 +16,7 @@ services:
       - gym-internal
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=web"
       - "traefik.http.routers.gym.rule=Host(`gym.abuyunus.cc`)"
       - "traefik.http.routers.gym.entrypoints=websecure"
       - "traefik.http.routers.gym.tls=true"
