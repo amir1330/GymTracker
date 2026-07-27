@@ -41,15 +41,9 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email already registered" });
         }
 
-        var username = request.Email.Split('@')[0];
-        if (await _userManager.FindByNameAsync(username) != null)
-        {
-            username = username + Guid.NewGuid().ToString("N")[..4];
-        }
-
         var user = new User
         {
-            UserName = username,
+            UserName = request.Email,
             Email = request.Email,
             Weight = request.Weight
         };
