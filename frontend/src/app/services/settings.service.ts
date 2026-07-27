@@ -15,10 +15,6 @@ export class SettingsService {
     return this.http.get<UserProfile>(`${this.apiUrl}/profile`);
   }
 
-  updateProfile(data: { weight?: number }): Observable<any> {
-    return this.http.put(`${this.apiUrl}/profile`, data);
-  }
-
   updateSettings(data: { theme?: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/settings`, data);
   }

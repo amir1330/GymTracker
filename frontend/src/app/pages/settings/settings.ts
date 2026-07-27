@@ -1,7 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { SettingsService } from '../../services/settings.service';
 import { UserProfile } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
@@ -9,12 +7,11 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule],
   templateUrl: './settings.html'
 })
 export class Settings implements OnInit, OnDestroy {
   profile: UserProfile | null = null;
-  weight?: number;
   theme = 'auto';
   success = '';
   error = '';
@@ -43,7 +40,6 @@ export class Settings implements OnInit, OnDestroy {
     this.settingsService.getProfile().subscribe({
       next: (profile) => {
         this.profile = profile;
-        this.weight = profile.weight;
         if (profile.settings?.theme) {
           this.theme = profile.settings.theme;
         }
@@ -56,19 +52,6 @@ export class Settings implements OnInit, OnDestroy {
         this.loading = false;
         this.cdr.markForCheck();
       }
-    });
-  }
-
-  updateProfile(): void {
-    this.success = '';
-    this.error = '';
-    this.settingsService.updateProfile({ weight: this.weight }).subscribe({
-      next: (updated) => {
-        this.profile = { ...this.profile!, ...updated };
-        this.success = 'Profile updated';
-        this.cdr.markForCheck();
-      },
-      error: (err) => { this.error = err.error?.message || 'Update failed'; this.cdr.markForCheck(); }
     });
   }
 
