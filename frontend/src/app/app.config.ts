@@ -4,7 +4,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
 
 import { routes } from './app.routes';
-import { authInterceptor } from './auth/auth.interceptor';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
 Chart.register(...registerables);
 

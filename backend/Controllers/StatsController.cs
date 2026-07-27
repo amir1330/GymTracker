@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymTracker.Data;
 using GymTracker.Models;
 using GymTracker.Services;
+using GymTracker.DTOs.Stats;
 
 namespace GymTracker.Controllers;
 
@@ -13,28 +12,22 @@ namespace GymTracker.Controllers;
 [Authorize]
 public class StatsController : ControllerBase
 {
-    private readonly GymDbContext _context;
-    private readonly UserManager<User> _userManager;
+    private readonly StatsService _statsService;
     private readonly ChartService _chartService;
+    private readonly UserManager<User> _userManager;
 
-    public StatsController(GymDbContext context, UserManager<User> userManager, ChartService chartService)
+    public StatsController(StatsService statsService, ChartService chartService, UserManager<User> userManager)
     {
-        _context = context;
-        _userManager = userManager;
+        _statsService = statsService;
         _chartService = chartService;
+        _userManager = userManager;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetStats()
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-
-        var workouts = await _context.Workouts
-            .Where(w => w.UserId == userId)
-            .Include(w => w.WorkoutExercises)
-                .ThenInclude(we => we.Exercise)
-            .OrderByDescending(w => w.Date)
-            .ToListAsync();
+        var workouts = await _statsService.GetWorkoutsAsync(userId);
 
         var totalWorkouts = workouts.Count;
         var totalExercises = workouts.SelectMany(w => w.WorkoutExercises).Count();
@@ -52,9 +45,9 @@ public class StatsController : ControllerBase
 
         var dailyWorkouts = workouts
             .GroupBy(w => w.Date.Date)
-            .Select(g => new { date = g.Key.ToString("yyyy-MM-dd"), count = g.Count() })
+            .Select(g => new DailyWorkoutResponse { Date = g.Key.ToString("yyyy-MM-dd"), Count = g.Count() })
             .Take(30)
-            .OrderBy(x => x.date)
+            .OrderBy(x => x.Date)
             .ToList();
 
         var exerciseFrequency = workouts
@@ -62,19 +55,19 @@ public class StatsController : ControllerBase
             .GroupBy(we => we.Exercise.Name)
             .OrderByDescending(g => g.Count())
             .Take(10)
-            .Select(g => new { name = g.Key, count = g.Count() })
+            .Select(g => new ExerciseFrequencyResponse { Name = g.Key, Count = g.Count() })
             .ToList();
 
-        return Ok(new
+        return Ok(new StatsResponse
         {
-            totalWorkouts,
-            totalExercises,
-            totalVolume,
-            workoutsLast30Days = last30Days.Count,
-            workoutsLast7Days = last7Days.Count,
-            muscleGroupCounts,
-            dailyWorkouts,
-            exerciseFrequency
+            TotalWorkouts = totalWorkouts,
+            TotalExercises = totalExercises,
+            TotalVolume = totalVolume,
+            WorkoutsLast30Days = last30Days.Count,
+            WorkoutsLast7Days = last7Days.Count,
+            MuscleGroupCounts = muscleGroupCounts,
+            DailyWorkouts = dailyWorkouts,
+            ExerciseFrequency = exerciseFrequency
         });
     }
 
@@ -83,50 +76,26 @@ public class StatsController : ControllerBase
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
 
-        var exerciseExists = await _context.Exercises
-            .AnyAsync(e => e.Id == exerciseId);
-        if (!exerciseExists)
-        {
+        if (!await _statsService.ExerciseExistsAsync(exerciseId))
             return NotFound(new { message = "Exercise not found" });
-        }
 
-        var entries = await _context.WorkoutExercises
-            .Where(we => we.ExerciseId == exerciseId && we.Workout.UserId == userId)
-            .Include(we => we.Workout)
-            .OrderBy(we => we.Workout.Date)
-            .Select(we => new
-            {
-                date = we.Workout.Date.ToString("yyyy-MM-dd"),
-                volume = we.Weight.HasValue ? (decimal?)(we.Sets * we.Reps * we.Weight.Value) : null,
-                duration = we.Duration,
-                restTime = we.RestTime
-            })
-            .ToListAsync();
+        var entries = await _statsService.GetExerciseProgressAsync(exerciseId, userId);
+        var response = entries.Select(we => new ExerciseProgressEntry
+        {
+            Date = we.Workout.Date.ToString("yyyy-MM-dd"),
+            Volume = we.Weight.HasValue ? (decimal?)(we.Sets * we.Reps * we.Weight.Value) : null,
+            Duration = we.Duration,
+            RestTime = we.RestTime
+        }).ToList();
 
-        return Ok(new { exerciseId, entries });
+        return Ok(new ExerciseProgressResponse { ExerciseId = exerciseId, Entries = response });
     }
 
     [HttpGet("exercises")]
     public async Task<IActionResult> GetExerciseStats()
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-
-        var exerciseStats = await _context.WorkoutExercises
-            .Where(we => we.Workout.UserId == userId)
-            .Include(we => we.Exercise)
-            .GroupBy(we => new { we.ExerciseId, we.Exercise.Name, we.Exercise.MuscleGroup })
-            .Select(g => new
-            {
-                exerciseId = g.Key.ExerciseId,
-                name = g.Key.Name,
-                muscleGroup = g.Key.MuscleGroup,
-                sessions = g.Count(),
-                totalVolume = g.Sum(we => we.Weight.HasValue ? (decimal?)we.Sets * we.Reps * we.Weight.Value : null),
-                maxWeight = g.Max(we => we.Weight),
-                bestDuration = g.Max(we => we.Duration)
-            })
-            .ToListAsync();
-
+        var exerciseStats = await _statsService.GetExerciseStatsAsync(userId);
         return Ok(exerciseStats);
     }
 

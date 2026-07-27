@@ -76,6 +76,9 @@ namespace GymTracker.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("DurationUnit")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
 
@@ -297,6 +300,9 @@ namespace GymTracker.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DurationUnit")
                         .HasColumnType("integer");
 
                     b.Property<int>("ExerciseId")

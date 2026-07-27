@@ -24,5 +24,7 @@ public class WorkoutExercise
 
     public int? Duration { get; set; }
 
+    public DurationUnit DurationUnit { get; set; } = DurationUnit.Seconds;
+
     public int? RestTime { get; set; }
 }

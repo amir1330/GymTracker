@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymTracker.Data;
 using GymTracker.Models;
+using GymTracker.Services;
+using GymTracker.DTOs.Presets;
+using AutoMapper;
 
 namespace GymTracker.Controllers;
 
@@ -12,24 +13,22 @@ namespace GymTracker.Controllers;
 [Authorize]
 public class PresetsController : ControllerBase
 {
-    private readonly GymDbContext _context;
+    private readonly PresetsService _presetsService;
     private readonly UserManager<User> _userManager;
+    private readonly IMapper _mapper;
 
-    public PresetsController(GymDbContext context, UserManager<User> userManager)
+    public PresetsController(PresetsService presetsService, UserManager<User> userManager, IMapper mapper)
     {
-        _context = context;
+        _presetsService = presetsService;
         _userManager = userManager;
+        _mapper = mapper;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var presets = await _context.Presets
-            .Where(p => p.UserId == userId)
-            .Include(p => p.PresetExercises)
-                .ThenInclude(pe => pe.Exercise)
-            .ToListAsync();
+        var presets = await _presetsService.GetAllAsync(userId);
         return Ok(presets);
     }
 
@@ -37,15 +36,8 @@ public class PresetsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var preset = await _context.Presets
-            .Include(p => p.PresetExercises)
-                .ThenInclude(pe => pe.Exercise)
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
-
-        if (preset == null)
-        {
-            return NotFound();
-        }
+        var preset = await _presetsService.GetByIdAsync(id, userId);
+        if (preset == null) return NotFound();
         return Ok(preset);
     }
 
@@ -68,77 +60,40 @@ public class PresetsController : ControllerBase
             }).ToList()
         };
 
-        _context.Presets.Add(preset);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = preset.Id }, preset);
+        var created = await _presetsService.CreateAsync(preset);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePresetRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var preset = await _context.Presets
-            .Include(p => p.PresetExercises)
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
 
-        if (preset == null)
+        var preset = new Preset
         {
-            return NotFound();
-        }
+            Name = request.Name,
+            PresetExercises = request.Exercises.Select(e => new PresetExercise
+            {
+                PresetId = id,
+                ExerciseId = e.ExerciseId,
+                DefaultSets = e.DefaultSets,
+                DefaultReps = e.DefaultReps,
+                DefaultWeight = e.DefaultWeight,
+                DefaultDuration = e.DefaultDuration
+            }).ToList()
+        };
 
-        preset.Name = request.Name;
-
-        _context.PresetExercises.RemoveRange(preset.PresetExercises);
-        preset.PresetExercises = request.Exercises.Select(e => new PresetExercise
-        {
-            PresetId = id,
-            ExerciseId = e.ExerciseId,
-            DefaultSets = e.DefaultSets,
-            DefaultReps = e.DefaultReps,
-            DefaultWeight = e.DefaultWeight,
-            DefaultDuration = e.DefaultDuration
-        }).ToList();
-
-        await _context.SaveChangesAsync();
-        return Ok(preset);
+        var updated = await _presetsService.UpdateAsync(id, preset, userId);
+        if (updated == null) return NotFound();
+        return Ok(updated);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var preset = await _context.Presets
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
-
-        if (preset == null)
-        {
-            return NotFound();
-        }
-
-        _context.Presets.Remove(preset);
-        await _context.SaveChangesAsync();
+        var deleted = await _presetsService.DeleteAsync(id, userId);
+        if (!deleted) return NotFound();
         return NoContent();
     }
-}
-
-public class CreatePresetRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public List<PresetExerciseRequest> Exercises { get; set; } = new();
-}
-
-public class UpdatePresetRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public List<PresetExerciseRequest> Exercises { get; set; } = new();
-}
-
-public class PresetExerciseRequest
-{
-    public int ExerciseId { get; set; }
-    public int DefaultSets { get; set; } = 3;
-    public int DefaultReps { get; set; } = 10;
-    public decimal? DefaultWeight { get; set; }
-    public int? DefaultDuration { get; set; }
 }

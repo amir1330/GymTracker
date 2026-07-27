@@ -1,0 +1,31 @@
+@if (visible) {
+  <div class="onboarding-overlay">
+    <div class="onboarding-card">
+      <h2>Welcome to [gym]</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <div class="step-content">
+            <h3>Create Preset</h3>
+            <p>Save your favorite workout routines as reusable presets.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <div class="step-content">
+            <h3>Log Workout</h3>
+            <p>Track your sets, reps, weight, and duration for each session.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <div class="step-content">
+            <h3>Track Progress</h3>
+            <p>Visualize your gains with configurable charts and stats.</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" (click)="dismiss()">Got it</button>
+    </div>
+  </div>
+}

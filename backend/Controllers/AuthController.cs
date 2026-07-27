@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using GymTracker.Data;
 using GymTracker.Models;
 using GymTracker.Services;
+using GymTracker.DTOs.Auth;
 
 namespace GymTracker.Controllers;
 
@@ -24,6 +25,16 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        if (request.Password != request.ConfirmPassword)
+        {
+            return BadRequest(new { message = "Passwords do not match" });
+        }
+
+        if (request.Password.Length < 6)
+        {
+            return BadRequest(new { message = "Password must be at least 6 characters" });
+        }
+
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
         {
@@ -75,19 +86,4 @@ public class AuthController : ControllerBase
         var token = _jwtService.GenerateToken(user.Id, user.UserName!, user.Email!);
         return Ok(new { token, userId = user.Id });
     }
-}
-
-public class RegisterRequest
-{
-    public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public decimal? Weight { get; set; }
-    public decimal? Height { get; set; }
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
 }

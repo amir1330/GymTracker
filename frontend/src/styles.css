@@ -43,7 +43,7 @@
 
 body {
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   background: var(--bg);
   color: var(--fg);
   line-height: 1.5;
@@ -61,7 +61,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  height: 40px;
+  height: 48px;
   background: var(--bg-dim);
   border-bottom: 1px solid var(--border);
 }
@@ -104,14 +104,14 @@ body {
 
 /* HEADINGS */
 h2 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 1rem;
   color: var(--fg);
 }
 
 h3 {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
   color: var(--fg-dim);
@@ -132,7 +132,7 @@ a:hover { color: var(--aqua); }
   display: block;
   margin-bottom: 0.25rem;
   color: var(--fg-dim);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -267,7 +267,7 @@ td.actions {
   padding: 0.1rem 0.4rem;
   background: var(--bg-mid);
   border: 1px solid var(--border);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--fg-dim);
 }
 
@@ -400,6 +400,12 @@ td.actions {
   border-color: var(--green);
 }
 
+.duration-unit {
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+  min-width: 2rem;
+}
+
 /* PRESET/WORKOUT CARDS */
 .preset-exercises, .workout-exercises {
   display: flex;
@@ -448,7 +454,7 @@ td.actions {
   padding: 0.15rem 0.4rem;
   background: var(--bg-mid);
   border: 1px solid var(--border);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--fg-dim);
 }
 

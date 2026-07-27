@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymTracker.Data;
 using GymTracker.Models;
+using GymTracker.Services;
+using GymTracker.DTOs.User;
 
 namespace GymTracker.Controllers;
 
@@ -12,26 +12,22 @@ namespace GymTracker.Controllers;
 [Authorize]
 public class UserController : ControllerBase
 {
+    private readonly UserService _userService;
     private readonly UserManager<User> _userManager;
-    private readonly GymDbContext _context;
 
-    public UserController(UserManager<User> userManager, GymDbContext context)
+    public UserController(UserService userService, UserManager<User> userManager)
     {
+        _userService = userService;
         _userManager = userManager;
-        _context = context;
     }
 
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return NotFound();
-        }
+        var user = await _userService.GetUserByIdAsync(int.Parse(_userManager.GetUserId(User)!));
+        if (user == null) return NotFound();
 
-        var settings = await _context.UserSettings
-            .FirstOrDefaultAsync(s => s.UserId == user.Id);
+        var settings = await _userService.GetSettingsAsync(user.Id);
 
         return Ok(new
         {
@@ -52,20 +48,11 @@ public class UserController : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return NotFound();
-        }
+        var user = await _userService.GetUserByIdAsync(int.Parse(_userManager.GetUserId(User)!));
+        if (user == null) return NotFound();
 
-        user.Weight = request.Weight;
-        user.Height = request.Height;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
+        var success = await _userService.UpdateProfileAsync(user, request.Weight, request.Height);
+        if (!success) return BadRequest();
 
         return Ok(new
         {
@@ -80,50 +67,10 @@ public class UserController : ControllerBase
     [HttpPut("settings")]
     public async Task<IActionResult> UpdateSettings([FromBody] UpdateSettingsRequest request)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return NotFound();
-        }
+        var userId = int.Parse(_userManager.GetUserId(User)!);
+        var success = await _userService.UpdateSettingsAsync(userId, request.RestTimerEnabled, request.DefaultRestTimeSeconds, request.Theme);
+        if (!success) return BadRequest();
 
-        var settings = await _context.UserSettings
-            .FirstOrDefaultAsync(s => s.UserId == user.Id);
-
-        if (settings == null)
-        {
-            settings = new UserSettings
-            {
-                UserId = user.Id,
-                RestTimerEnabled = request.RestTimerEnabled ?? true,
-                DefaultRestTimeSeconds = request.DefaultRestTimeSeconds ?? 90,
-                Theme = request.Theme ?? "dark"
-            };
-            _context.UserSettings.Add(settings);
-        }
-        else
-        {
-            if (request.RestTimerEnabled.HasValue)
-                settings.RestTimerEnabled = request.RestTimerEnabled.Value;
-            if (request.DefaultRestTimeSeconds.HasValue)
-                settings.DefaultRestTimeSeconds = request.DefaultRestTimeSeconds.Value;
-            if (request.Theme != null)
-                settings.Theme = request.Theme;
-        }
-
-        await _context.SaveChangesAsync();
         return Ok(new { message = "Settings updated" });
     }
-}
-
-public class UpdateProfileRequest
-{
-    public decimal? Weight { get; set; }
-    public decimal? Height { get; set; }
-}
-
-public class UpdateSettingsRequest
-{
-    public bool? RestTimerEnabled { get; set; }
-    public int? DefaultRestTimeSeconds { get; set; }
-    public string? Theme { get; set; }
 }

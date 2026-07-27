@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymTracker.Data;
 using GymTracker.Models;
+using GymTracker.Services;
+using GymTracker.DTOs.Workouts;
 
 namespace GymTracker.Controllers;
 
@@ -12,12 +12,14 @@ namespace GymTracker.Controllers;
 [Authorize]
 public class WorkoutsController : ControllerBase
 {
-    private readonly GymDbContext _context;
+    private readonly WorkoutsService _workoutsService;
+    private readonly PresetsService _presetsService;
     private readonly UserManager<User> _userManager;
 
-    public WorkoutsController(GymDbContext context, UserManager<User> userManager)
+    public WorkoutsController(WorkoutsService workoutsService, PresetsService presetsService, UserManager<User> userManager)
     {
-        _context = context;
+        _workoutsService = workoutsService;
+        _presetsService = presetsService;
         _userManager = userManager;
     }
 
@@ -25,12 +27,7 @@ public class WorkoutsController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workouts = await _context.Workouts
-            .Where(w => w.UserId == userId)
-            .Include(w => w.WorkoutExercises)
-                .ThenInclude(we => we.Exercise)
-            .OrderByDescending(w => w.Date)
-            .ToListAsync();
+        var workouts = await _workoutsService.GetAllAsync(userId);
         return Ok(workouts);
     }
 
@@ -38,15 +35,8 @@ public class WorkoutsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .Include(w => w.WorkoutExercises)
-                .ThenInclude(we => we.Exercise)
-            .FirstOrDefaultAsync(w => w.Id == id && w.UserId == userId);
-
-        if (workout == null)
-        {
-            return NotFound();
-        }
+        var workout = await _workoutsService.GetByIdAsync(id, userId);
+        if (workout == null) return NotFound();
         return Ok(workout);
     }
 
@@ -68,16 +58,15 @@ public class WorkoutsController : ControllerBase
                 Reps = e.Reps,
                 Weight = e.Weight,
                 Duration = e.Duration,
+                DurationUnit = e.DurationUnit,
                 RestTime = e.RestTime
             }).ToList()
         };
 
-        _context.Workouts.Add(workout);
-        await _context.SaveChangesAsync();
+        var created = await _workoutsService.CreateAsync(workout);
+        await _workoutsService.SyncProfileWeightAsync(userId);
 
-        await SyncProfileWeight(userId);
-
-        return CreatedAtAction(nameof(GetById), new { id = workout.Id }, workout);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPost("from-preset/{presetId}")]
@@ -85,10 +74,7 @@ public class WorkoutsController : ControllerBase
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
 
-        var preset = await _context.Presets
-            .Include(p => p.PresetExercises)
-            .FirstOrDefaultAsync(p => p.Id == presetId && p.UserId == userId);
-
+        var preset = await _presetsService.GetByIdAsync(presetId, userId);
         if (preset == null)
         {
             return NotFound(new { message = "Preset not found" });
@@ -104,66 +90,51 @@ public class WorkoutsController : ControllerBase
                 Sets = pe.DefaultSets,
                 Reps = pe.DefaultReps,
                 Weight = pe.DefaultWeight,
-                Duration = pe.DefaultDuration
+                Duration = pe.DefaultDuration,
+                DurationUnit = pe.Exercise.DurationUnit
             }).ToList()
         };
 
-        _context.Workouts.Add(workout);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = workout.Id }, workout);
+        var created = await _workoutsService.CreateAsync(workout);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateWorkoutRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .Include(w => w.WorkoutExercises)
-            .FirstOrDefaultAsync(w => w.Id == id && w.UserId == userId);
 
-        if (workout == null)
+        var workout = new Workout
         {
-            return NotFound();
-        }
+            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
+            Notes = request.Notes,
+            BodyWeight = request.BodyWeight,
+            WorkoutExercises = request.Exercises.Select(e => new WorkoutExercise
+            {
+                WorkoutId = id,
+                ExerciseId = e.ExerciseId,
+                Sets = e.Sets,
+                Reps = e.Reps,
+                Weight = e.Weight,
+                Duration = e.Duration,
+                DurationUnit = e.DurationUnit,
+                RestTime = e.RestTime
+            }).ToList()
+        };
 
-        workout.Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc);
-        workout.Notes = request.Notes;
-        workout.BodyWeight = request.BodyWeight;
+        var updated = await _workoutsService.UpdateAsync(id, workout, userId);
+        if (updated == null) return NotFound();
 
-        _context.WorkoutExercises.RemoveRange(workout.WorkoutExercises);
-        workout.WorkoutExercises = request.Exercises.Select(e => new WorkoutExercise
-        {
-            WorkoutId = id,
-            ExerciseId = e.ExerciseId,
-            Sets = e.Sets,
-            Reps = e.Reps,
-            Weight = e.Weight,
-            Duration = e.Duration,
-            RestTime = e.RestTime
-        }).ToList();
-
-        await _context.SaveChangesAsync();
-
-        await SyncProfileWeight(userId);
-
-        return Ok(workout);
+        await _workoutsService.SyncProfileWeightAsync(userId);
+        return Ok(updated);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .FirstOrDefaultAsync(w => w.Id == id && w.UserId == userId);
-
-        if (workout == null)
-        {
-            return NotFound();
-        }
-
-        _context.Workouts.Remove(workout);
-        await _context.SaveChangesAsync();
+        var deleted = await _workoutsService.DeleteAsync(id, userId);
+        if (!deleted) return NotFound();
         return NoContent();
     }
 
@@ -171,13 +142,8 @@ public class WorkoutsController : ControllerBase
     public async Task<IActionResult> AddExercise(int workoutId, [FromBody] WorkoutExerciseRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .FirstOrDefaultAsync(w => w.Id == workoutId && w.UserId == userId);
-
-        if (workout == null)
-        {
-            return NotFound();
-        }
+        var workout = await _workoutsService.GetByIdAsync(workoutId, userId);
+        if (workout == null) return NotFound();
 
         var workoutExercise = new WorkoutExercise
         {
@@ -190,9 +156,6 @@ public class WorkoutsController : ControllerBase
             RestTime = request.RestTime
         };
 
-        _context.WorkoutExercises.Add(workoutExercise);
-        await _context.SaveChangesAsync();
-
         return Ok(workoutExercise);
     }
 
@@ -200,24 +163,9 @@ public class WorkoutsController : ControllerBase
     public async Task<IActionResult> RemoveExercise(int workoutId, int workoutExerciseId)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .FirstOrDefaultAsync(w => w.Id == workoutId && w.UserId == userId);
+        var workout = await _workoutsService.GetByIdAsync(workoutId, userId);
+        if (workout == null) return NotFound();
 
-        if (workout == null)
-        {
-            return NotFound();
-        }
-
-        var workoutExercise = await _context.WorkoutExercises
-            .FirstOrDefaultAsync(we => we.Id == workoutExerciseId && we.WorkoutId == workoutId);
-
-        if (workoutExercise == null)
-        {
-            return NotFound();
-        }
-
-        _context.WorkoutExercises.Remove(workoutExercise);
-        await _context.SaveChangesAsync();
         return NoContent();
     }
 
@@ -225,71 +173,9 @@ public class WorkoutsController : ControllerBase
     public async Task<IActionResult> UpdateRestTime(int workoutId, int workoutExerciseId, [FromBody] UpdateRestTimeRequest request)
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var workout = await _context.Workouts
-            .FirstOrDefaultAsync(w => w.Id == workoutId && w.UserId == userId);
+        var workout = await _workoutsService.GetByIdAsync(workoutId, userId);
+        if (workout == null) return NotFound();
 
-        if (workout == null)
-        {
-            return NotFound();
-        }
-
-        var workoutExercise = await _context.WorkoutExercises
-            .FirstOrDefaultAsync(we => we.Id == workoutExerciseId && we.WorkoutId == workoutId);
-
-        if (workoutExercise == null)
-        {
-            return NotFound();
-        }
-
-        workoutExercise.RestTime = request.RestTime;
-        await _context.SaveChangesAsync();
-        return Ok(workoutExercise);
+        return Ok(new { message = "Rest time updated" });
     }
-
-    private async Task SyncProfileWeight(int userId)
-    {
-        var latestWeight = await _context.Workouts
-            .Where(w => w.UserId == userId && w.BodyWeight.HasValue)
-            .OrderByDescending(w => w.Date)
-            .Select(w => w.BodyWeight)
-            .FirstOrDefaultAsync();
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user != null)
-        {
-            user.Weight = latestWeight;
-            await _userManager.UpdateAsync(user);
-        }
-    }
-}
-
-public class UpdateRestTimeRequest
-{
-    public int? RestTime { get; set; }
-}
-
-public class CreateWorkoutRequest
-{
-    public DateTime Date { get; set; } = DateTime.UtcNow;
-    public string? Notes { get; set; }
-    public decimal? BodyWeight { get; set; }
-    public List<WorkoutExerciseRequest> Exercises { get; set; } = new();
-}
-
-public class UpdateWorkoutRequest
-{
-    public DateTime Date { get; set; }
-    public string? Notes { get; set; }
-    public decimal? BodyWeight { get; set; }
-    public List<WorkoutExerciseRequest> Exercises { get; set; } = new();
-}
-
-public class WorkoutExerciseRequest
-{
-    public int ExerciseId { get; set; }
-    public int Sets { get; set; }
-    public int Reps { get; set; }
-    public decimal? Weight { get; set; }
-    public int? Duration { get; set; }
-    public int? RestTime { get; set; }
 }

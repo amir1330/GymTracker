@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './auth/auth.service';
+import { AuthService } from './services/auth.service';
+import { OnboardingGuide } from './components/onboarding-guide/onboarding-guide';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, OnboardingGuide],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -14,7 +15,7 @@ export class App implements OnInit {
   constructor(public authService: AuthService) {}
 
   ngOnInit(): void {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const savedTheme = localStorage.getItem('theme') || 'auto';
     if (savedTheme === 'auto') {
       const isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
       if (isLight) {

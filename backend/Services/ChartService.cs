@@ -58,6 +58,12 @@ public class ChartService
                 Value = g.Sum(we => we.Reps)
             }).ToList(),
 
+            "duration" => grouped.Select(g => new ChartDataPoint
+            {
+                Date = g.Key.ToString("yyyy-MM-dd"),
+                Value = g.Where(we => we.Duration.HasValue).Sum(we => NormalizeToSeconds(we.Duration!.Value, we.DurationUnit))
+            }).ToList(),
+
             "bodyWeight" => grouped
                 .Where(g => g.Any(we => we.Workout.BodyWeight.HasValue))
                 .Select(g => new ChartDataPoint
@@ -123,6 +129,17 @@ public class ChartService
         }
 
         return await query.OrderBy(we => we.Workout.Date).ToListAsync();
+    }
+
+    private static decimal NormalizeToSeconds(int value, DurationUnit unit)
+    {
+        return unit switch
+        {
+            DurationUnit.Seconds => value,
+            DurationUnit.Minutes => value * 60,
+            DurationUnit.Hours => value * 3600,
+            _ => value
+        };
     }
 }
 

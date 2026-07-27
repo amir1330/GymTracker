@@ -1,0 +1,59 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.onboarding-card {
+  background: var(--bg-dim);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  max-width: 480px;
+  width: 90%;
+}
+
+.onboarding-card h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--green);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.step-num {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--green);
+  min-width: 2rem;
+}
+
+.step-content h3 {
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: var(--fg);
+}
+
+.step-content p {
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+}
+
+.onboarding-card .btn {
+  width: 100%;
+  text-align: center;
+}

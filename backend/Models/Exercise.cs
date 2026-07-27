@@ -17,6 +17,8 @@ public class Exercise
 
     public bool IsDuration { get; set; }
 
+    public DurationUnit DurationUnit { get; set; } = DurationUnit.Seconds;
+
     public bool IsDefault { get; set; }
 
     [JsonIgnore]

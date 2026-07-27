@@ -13,6 +13,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddDbContext<GymDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -22,6 +24,12 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<ChartService>();
+builder.Services.AddScoped<ExercisesService>();
+builder.Services.AddScoped<PresetsService>();
+builder.Services.AddScoped<WorkoutsService>();
+builder.Services.AddScoped<StatsService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddAuthentication(options =>
 {
