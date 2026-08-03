@@ -35,6 +35,22 @@ services:
     networks:
       - gym-internal
 
+  webhook:
+    build: ./webhook
+    container_name: gym-tracker-webhook
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./webhook:/webhook:ro
+      - .:/root/gym-tracker:ro
+    environment:
+      - DeployToken=${DEPLOY_TOKEN}
+    networks:
+      - gym-internal
+    command: ["-hooks", "/webhook/hooks.json", "-verbose"]
+
 networks:
   web:
     external: true

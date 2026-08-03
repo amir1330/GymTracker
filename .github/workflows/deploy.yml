@@ -33,7 +33,17 @@ jobs:
 
       - name: Trigger deploy
         run: |
-          curl -s --fail -o /dev/null -w "%{http_code}" -X POST \
-            http://${{ secrets.VPS_HOST }}:9000/hooks/deploy \
-            -H "Content-Type: application/json" \
-            -H "X-Deploy-Token: ${{ secrets.DEPLOY_TOKEN }}"
+          echo "Triggering deploy on ${{ secrets.VPS_HOST }}:9000 ..."
+          for i in 1 2 3; do
+            status=$(curl -s --fail -o /dev/null -w "%{http_code}" --max-time 30 -X POST \
+              http://${{ secrets.VPS_HOST }}:9000/hooks/deploy \
+              -H "Content-Type: application/json" \
+              -H "X-Deploy-Token: ${{ secrets.DEPLOY_TOKEN }}")
+            echo "Attempt $i: HTTP $status"
+            if [ "$status" = "200" ]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Deploy trigger failed after 3 attempts. Is the webhook container running and port 9000 open?"
+          exit 1
