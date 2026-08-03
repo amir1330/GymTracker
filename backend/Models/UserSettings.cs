@@ -10,4 +10,6 @@ public class UserSettings
     public User User { get; set; } = null!;
 
     public string Theme { get; set; } = "auto";
+
+    public string Language { get; set; } = "en";
 }

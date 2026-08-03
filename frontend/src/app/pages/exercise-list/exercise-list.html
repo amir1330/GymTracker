@@ -1,34 +1,34 @@
 <div class="exercise-list">
   <div class="header">
-    <h2>Exercises</h2>
-    <a routerLink="/exercises/new" class="btn">+ New</a>
+    <h2>{{ 'exercise.title' | translate }}</h2>
+    <a routerLink="/exercises/new" class="btn">{{ 'exercise.new' | translate }}</a>
   </div>
 
   @if (loading) {
-    <p>Loading...</p>
+    <p>{{ 'common.loading' | translate }}</p>
   } @else {
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Group</th>
-            <th>Type</th>
-            <th>Actions</th>
+            <th>{{ 'exercise.name' | translate }}</th>
+            <th>{{ 'exercise.group' | translate }}</th>
+            <th>{{ 'exercise.type' | translate }}</th>
+            <th>{{ 'common.actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (exercise of exercises; track exercise.id) {
             <tr>
               <td>{{ exercise.name }}</td>
-              <td><span class="badge">{{ exercise.muscleGroup }}</span></td>
-              <td>{{ exercise.isDuration ? 'Duration' : 'Reps' }}</td>
+              <td><span class="badge">{{ 'exercise.groups.' + exercise.muscleGroup | translate }}</span></td>
+              <td>{{ (exercise.isDuration ? 'exercise.duration' : 'exercise.reps') | translate }}</td>
               <td class="actions">
                 @if (!exercise.isDefault) {
-                  <a [routerLink]="['/exercises', exercise.id, 'edit']" class="btn btn-small">Edit</a>
-                  <button (click)="deleteExercise(exercise.id)" class="btn btn-small btn-danger">Del</button>
+                  <a [routerLink]="['/exercises', exercise.id, 'edit']" class="btn btn-small">{{ 'common.edit' | translate }}</a>
+                  <button (click)="deleteExercise(exercise.id)" class="btn btn-small btn-danger">{{ 'common.delete' | translate }}</button>
                 } @else {
-                  <span class="muted">Default</span>
+                  <span class="muted">{{ 'common.default' | translate }}</span>
                 }
               </td>
             </tr>

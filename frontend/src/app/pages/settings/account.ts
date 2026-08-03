@@ -1,16 +1,21 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SettingsService } from '../../services/settings.service';
 import { AuthService } from '../../services/auth.service';
+import { TranslationService } from '../../services/translation.service';
+import { SupportedLanguage } from '../../services/locale-detection.service';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './account.html'
 })
 export class Account implements OnInit, OnDestroy {
   email = '';
   theme = 'auto';
+  language: SupportedLanguage = 'en';
   success = '';
   private mediaQuery?: MediaQueryList;
   private mediaHandler?: (e: MediaQueryListEvent) => void;
@@ -18,12 +23,14 @@ export class Account implements OnInit, OnDestroy {
   constructor(
     private settingsService: SettingsService,
     public authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
     this.loadEmailFromToken();
     this.loadTheme();
+    this.language = this.translationService.getCurrentLanguage();
   }
 
   ngOnDestroy(): void {
@@ -50,12 +57,20 @@ export class Account implements OnInit, OnDestroy {
   updateSettings(): void {
     this.success = '';
     this.settingsService.updateSettings({
-      theme: this.theme
+      theme: this.theme,
+      language: this.language
     }).subscribe(() => {
-      this.success = 'Settings updated';
+      this.success = this.translationService.instant('settings.updated');
       this.applyTheme(this.theme);
       this.cdr.markForCheck();
     });
+  }
+
+  setLanguage(language: SupportedLanguage): void {
+    this.language = language;
+    this.translationService.setLanguage(language);
+    this.success = this.translationService.instant('settings.updated');
+    this.cdr.markForCheck();
   }
 
   applyTheme(theme: string): void {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using GymTracker.Data;
+using GymTracker.DTOs.Auth;
 using GymTracker.Models;
 
 namespace GymTracker.Services;
@@ -18,32 +19,36 @@ public class AuthService
         _context = context;
     }
 
-    public async Task<(bool Success, string? Token, int? UserId, string? Error)> RegisterAsync(string email, string password, string confirmPassword)
+    public async Task<(bool Success, string? Token, int? UserId, string? Error)> RegisterAsync(RegisterRequest request)
     {
-        if (password != confirmPassword)
+        if (request.Password != request.ConfirmPassword)
             return (false, null, null, "Passwords do not match");
 
-        if (password.Length < 6)
+        if (request.Password.Length < 6)
             return (false, null, null, "Password must be at least 6 characters");
 
-        var existingUser = await _userManager.FindByEmailAsync(email);
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
             return (false, null, null, "Email already registered");
 
         var user = new User
         {
-            UserName = email,
-            Email = email
+            UserName = request.Email,
+            Email = request.Email
         };
 
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
             var errorMessages = string.Join(". ", result.Errors.Select(e => e.Description));
             return (false, null, null, errorMessages);
         }
 
-        _context.UserSettings.Add(new UserSettings { UserId = user.Id });
+        _context.UserSettings.Add(new UserSettings
+        {
+            UserId = user.Id,
+            Language = request.Language ?? "en"
+        });
         await _context.SaveChangesAsync();
 
         var token = _jwtService.GenerateToken(user.Id, user.UserName!, user.Email!);

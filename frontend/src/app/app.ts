@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { OnboardingGuide } from './components/onboarding-guide/onboarding-guide';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, OnboardingGuide],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, OnboardingGuide, TranslatePipe],
   templateUrl: './app.html'
 })
 export class App implements OnInit {

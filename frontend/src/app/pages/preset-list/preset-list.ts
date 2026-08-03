@@ -1,12 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PresetService } from '../../services/preset.service';
 import { Preset, PresetExercise } from '../../models/preset.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-preset-list',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, TranslatePipe],
   templateUrl: './preset-list.html'
 })
 export class PresetList implements OnInit {
@@ -15,7 +17,8 @@ export class PresetList implements OnInit {
 
   constructor(
     private presetService: PresetService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -34,17 +37,19 @@ export class PresetList implements OnInit {
   formatPresetExercise(pe: PresetExercise): string {
     if (pe.defaultDuration) {
       const unit = pe.exercise?.durationUnit || 'seconds';
-      return `(${pe.defaultDuration}${unit === 'seconds' ? 's' : unit === 'minutes' ? 'min' : 'hr'})`;
+      const short = unit === 'seconds' ? 's' : unit === 'minutes' ? 'min' : 'hr';
+      return `(${pe.defaultDuration}${short})`;
     }
     const parts = [`${pe.defaultSets}x${pe.defaultReps}`];
     if (pe.defaultWeight) {
-      parts.push(`@${pe.defaultWeight}kg`);
+      parts.push(`@${pe.defaultWeight}${this.translationService.instant('common.kg')}`);
     }
     return `(${parts.join(' ')})`;
   }
 
   deletePreset(id: number): void {
-    if (confirm('Are you sure you want to delete this preset?')) {
+    const message = this.translationService.instant('common.confirmDelete', { item: this.translationService.instant('preset.title') });
+    if (confirm(message)) {
       this.presetService.delete(id).subscribe(() => this.loadPresets());
     }
   }

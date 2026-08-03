@@ -1,27 +1,27 @@
 <div class="preset-list">
   <div class="header">
-    <h2>Workout Presets</h2>
-    <a routerLink="/presets/new" class="btn">Add Preset</a>
+    <h2>{{ 'preset.title' | translate }}</h2>
+    <a routerLink="/presets/new" class="btn">{{ 'preset.new' | translate }}</a>
   </div>
 
   @if (loading) {
-    <p>Loading...</p>
+    <p>{{ 'common.loading' | translate }}</p>
   } @else if (presets.length === 0) {
-    <p class="empty">No presets yet. Create one to get started.</p>
+    <p class="empty">{{ 'preset.empty' | translate }}</p>
   } @else {
     <div class="presets-grid">
       @for (preset of presets; track preset.id) {
         <div class="preset-card">
           <h3>{{ preset.name }}</h3>
-          <p class="exercise-count">{{ preset.presetExercises.length }} exercises</p>
+          <p class="exercise-count">{{ preset.presetExercises.length }} {{ 'preset.exerciseCount' | translate }}</p>
           <div class="preset-exercises">
             @for (pe of preset.presetExercises; track pe.id) {
               <span class="exercise-tag">{{ pe.exercise?.name }} {{ formatPresetExercise(pe) }}</span>
             }
           </div>
           <div class="preset-actions">
-            <a [routerLink]="['/presets', preset.id, 'edit']" class="btn btn-secondary">Edit</a>
-            <button (click)="deletePreset(preset.id)" class="btn btn-danger">Delete</button>
+            <a [routerLink]="['/presets', preset.id, 'edit']" class="btn btn-secondary">{{ 'common.edit' | translate }}</a>
+            <button (click)="deletePreset(preset.id)" class="btn btn-danger">{{ 'common.delete' | translate }}</button>
           </div>
         </div>
       }

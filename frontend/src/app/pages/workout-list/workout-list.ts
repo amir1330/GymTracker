@@ -1,19 +1,25 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { WorkoutService } from '../../services/workout.service';
 import { Workout, WorkoutExercise } from '../../models/workout.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-workout-list',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, TranslatePipe],
   templateUrl: './workout-list.html'
 })
 export class WorkoutList implements OnInit {
   workouts: Workout[] = [];
   loading = true;
 
-  constructor(private workoutService: WorkoutService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private workoutService: WorkoutService,
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
+  ) {}
 
   ngOnInit(): void {
     this.loadWorkouts();
@@ -29,13 +35,16 @@ export class WorkoutList implements OnInit {
   }
 
   deleteWorkout(id: number): void {
-    if (confirm('Are you sure you want to delete this workout?')) {
+    const message = this.translationService.instant('common.confirmDelete', { item: this.translationService.instant('workout.title') });
+    if (confirm(message)) {
       this.workoutService.delete(id).subscribe(() => this.loadWorkouts());
     }
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    const localeMap: Record<string, string> = { kz: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
+    const locale = localeMap[this.translationService.getCurrentLanguage()] || 'en-US';
+    return new Date(dateStr).toLocaleDateString(locale, {
       weekday: 'short',
       year: 'numeric',
       month: 'short',

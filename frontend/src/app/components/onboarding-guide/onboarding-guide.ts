@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-onboarding-guide',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './onboarding-guide.html',
   styleUrl: './onboarding-guide.css'
 })

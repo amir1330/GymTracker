@@ -2,15 +2,17 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardChart } from '../../models/dashboard.model';
 import { ExerciseService } from '../../services/exercise.service';
 import { Exercise } from '../../models/exercise.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-chart-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, FormsModule, BaseChartDirective, TranslatePipe],
   templateUrl: './chart-editor.html',
   styleUrl: './chart-editor.css'
 })
@@ -34,20 +36,20 @@ export class ChartEditor implements OnInit, OnChanges {
   previewTimer: any = null;
 
   metrics = [
-    { value: 'weight', label: 'Weight', needsExercise: true, allOption: false },
-    { value: 'volume', label: 'Volume', needsExercise: false, allOption: true },
-    { value: 'duration', label: 'Duration', needsExercise: true, allOption: false },
-    { value: 'bodyWeight', label: 'Body Weight', needsExercise: false, allOption: false },
-    { value: 'frequency', label: 'Frequency', needsExercise: false, allOption: false }
+    { value: 'weight', labelKey: 'chartEditor.weight', needsExercise: true, allOption: false },
+    { value: 'volume', labelKey: 'chartEditor.volume', needsExercise: false, allOption: true },
+    { value: 'duration', labelKey: 'chartEditor.duration', needsExercise: true, allOption: false },
+    { value: 'bodyWeight', labelKey: 'chartEditor.bodyWeight', needsExercise: false, allOption: false },
+    { value: 'frequency', labelKey: 'chartEditor.frequency', needsExercise: false, allOption: false }
   ];
 
   periods = [
-    { value: '7d', label: '7 days' },
-    { value: '30d', label: '30 days' },
-    { value: '90d', label: '90 days' },
-    { value: '180d', label: '6 months' },
-    { value: '365d', label: '1 year' },
-    { value: 'all', label: 'All time' }
+    { value: '7d', labelKey: 'chartEditor.7d' },
+    { value: '30d', labelKey: 'chartEditor.30d' },
+    { value: '90d', labelKey: 'chartEditor.90d' },
+    { value: '180d', labelKey: 'chartEditor.180d' },
+    { value: '365d', labelKey: 'chartEditor.365d' },
+    { value: 'all', labelKey: 'chartEditor.all' }
   ];
 
   previewChartOptions: any = {
@@ -63,7 +65,8 @@ export class ChartEditor implements OnInit, OnChanges {
   constructor(
     private dashboardService: DashboardService,
     private exerciseService: ExerciseService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   getChartType(): 'line' | 'bar' {
@@ -130,11 +133,11 @@ export class ChartEditor implements OnInit, OnChanges {
       const ex = this.exercises.find(e => e.id === this.exerciseId);
       newLabel = ex?.name || '';
     } else if (this.showAllOption && !this.exerciseId) {
-      newLabel = 'Total Volume';
+      newLabel = this.translationService.instant('chartEditor.totalVolume');
     } else if (this.metric === 'bodyWeight') {
-      newLabel = 'Body Weight';
+      newLabel = this.translationService.instant('chartEditor.bodyWeight');
     } else if (this.metric === 'frequency') {
-      newLabel = 'Workouts / week';
+      newLabel = this.translationService.instant('chartEditor.workoutsPerWeek');
     }
     if (newLabel) {
       this.label = newLabel;

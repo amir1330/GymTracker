@@ -1,67 +1,67 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onCancel()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ chart ? 'Edit' : 'Add' }} Chart</h2>
+      <h2>{{ (chart ? 'chartEditor.edit' : 'chartEditor.add') | translate }}</h2>
       <button class="btn-close" (click)="onCancel()">&times;</button>
     </div>
 
     <div class="modal-body">
       <div class="config-section">
         <div class="form-group">
-          <label>Label</label>
-          <input type="text" [(ngModel)]="label" (ngModelChange)="onConfigChange()" (input)="onLabelInput()" placeholder="e.g. Bench Press Progress">
+          <label>{{ 'chartEditor.label' | translate }}</label>
+          <input type="text" [(ngModel)]="label" (ngModelChange)="onConfigChange()" (input)="onLabelInput()" [placeholder]="'chartEditor.labelPlaceholder' | translate">
         </div>
 
         <div class="form-group">
-          <label>Metric</label>
+          <label>{{ 'chartEditor.metric' | translate }}</label>
           <div class="radio-group">
             <label *ngFor="let m of metrics" class="radio-label">
               <input type="radio" [value]="m.value" [(ngModel)]="metric" name="metric" (ngModelChange)="onConfigChange()">
-              {{ m.label }}
+              {{ m.labelKey | translate }}
             </label>
           </div>
         </div>
 
         <div class="form-group" *ngIf="showExercise">
-          <label>Exercise</label>
+          <label>{{ 'chartEditor.exercise' | translate }}</label>
           <select [(ngModel)]="exerciseId" name="exerciseId" (ngModelChange)="onConfigChange()">
-            <option [ngValue]="null" disabled>Select exercise</option>
-            <option *ngIf="showAllOption" [ngValue]="null">All exercises</option>
-            <option *ngFor="let ex of exercises" [ngValue]="ex.id">{{ ex.name }} ({{ ex.muscleGroup }})</option>
+            <option [ngValue]="null" disabled>{{ 'chartEditor.selectExercise' | translate }}</option>
+            <option *ngIf="showAllOption" [ngValue]="null">{{ 'chartEditor.allExercises' | translate }}</option>
+            <option *ngFor="let ex of exercises" [ngValue]="ex.id">{{ ex.name }} ({{ 'exercise.groups.' + ex.muscleGroup | translate }})</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Period</label>
+          <label>{{ 'chartEditor.period' | translate }}</label>
           <div class="radio-group">
             <label *ngFor="let p of periods" class="radio-label">
               <input type="radio" [value]="p.value" [(ngModel)]="period" name="period" (ngModelChange)="onConfigChange()">
-              {{ p.label }}
+              {{ p.labelKey | translate }}
             </label>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Chart Type</label>
+          <label>{{ 'chartEditor.chartType' | translate }}</label>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" value="line" [(ngModel)]="chartType" name="chartType" (ngModelChange)="onConfigChange()">
-              Line
+              {{ 'chartEditor.line' | translate }}
             </label>
             <label class="radio-label">
               <input type="radio" value="bar" [(ngModel)]="chartType" name="chartType" (ngModelChange)="onConfigChange()">
-              Bar
+              {{ 'chartEditor.bar' | translate }}
             </label>
           </div>
         </div>
       </div>
 
       <div class="preview-section">
-        <h3>Preview</h3>
+        <h3>{{ 'chartEditor.preview' | translate }}</h3>
         <div class="preview-chart">
-          <div *ngIf="previewLoading" class="preview-loading">Loading...</div>
+          <div *ngIf="previewLoading" class="preview-loading">{{ 'chartEditor.previewLoading' | translate }}</div>
           <div *ngIf="!previewLoading && previewData.datasets[0]?.data?.length === 0" class="preview-empty">
-            No data for this configuration
+            {{ 'chartEditor.previewEmpty' | translate }}
           </div>
           <canvas *ngIf="!previewLoading && previewData.datasets[0]?.data?.length > 0"
                   baseChart
@@ -81,9 +81,9 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+      <button class="btn btn-secondary" (click)="onCancel()">{{ 'chartEditor.cancel' | translate }}</button>
       <button class="btn btn-primary" (click)="onSave()" [disabled]="!label.trim() || (showExercise && !exerciseId)">
-        {{ chart ? 'Save Changes' : 'Add to Dashboard' }}
+        {{ (chart ? 'chartEditor.saveChanges' : 'chartEditor.addToDashboard') | translate }}
       </button>
     </div>
   </div>

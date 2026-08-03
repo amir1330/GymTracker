@@ -2,14 +2,14 @@
   @if (authService.isLoggedIn()) {
     <nav class="nav">
       <div class="nav-brand">
-        <a routerLink="/progress" class="nav-link brand">[gym]</a>
+        <a routerLink="/progress" class="nav-link brand">{{ 'nav.brand' | translate }}</a>
       </div>
       <div class="nav-links">
-        <a routerLink="/progress" routerLinkActive="active" class="nav-link">progress</a>
-        <a routerLink="/workouts" routerLinkActive="active" class="nav-link">workouts</a>
-        <a routerLink="/presets" routerLinkActive="active" class="nav-link">presets</a>
-        <a routerLink="/exercises" routerLinkActive="active" class="nav-link">exercises</a>
-        <a routerLink="/settings" routerLinkActive="active" class="nav-link">settings</a>
+        <a routerLink="/progress" routerLinkActive="active" class="nav-link">{{ 'nav.progress' | translate }}</a>
+        <a routerLink="/workouts" routerLinkActive="active" class="nav-link">{{ 'nav.workouts' | translate }}</a>
+        <a routerLink="/presets" routerLinkActive="active" class="nav-link">{{ 'nav.presets' | translate }}</a>
+        <a routerLink="/exercises" routerLinkActive="active" class="nav-link">{{ 'nav.exercises' | translate }}</a>
+        <a routerLink="/settings" routerLinkActive="active" class="nav-link">{{ 'nav.settings' | translate }}</a>
       </div>
     </nav>
   }

@@ -1,17 +1,19 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { WorkoutService } from '../../services/workout.service';
 import { Workout, WorkoutExercise } from '../../models/workout.model';
 import { ExerciseService } from '../../services/exercise.service';
 import { Exercise } from '../../models/exercise.model';
 import { PresetService } from '../../services/preset.service';
 import { Preset } from '../../models/preset.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-workout-form',
   standalone: true,
-  imports: [FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule, TranslatePipe],
   templateUrl: './workout-form.html'
 })
 export class WorkoutForm implements OnInit {
@@ -31,7 +33,8 @@ export class WorkoutForm implements OnInit {
     private presetService: PresetService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -101,6 +104,11 @@ export class WorkoutForm implements OnInit {
 
   removeExercise(index: number): void {
     this.workout.workoutExercises?.splice(index, 1);
+  }
+
+  durationUnitLabel(unit?: string): string {
+    const key = unit === 'minutes' ? 'workout.minutes' : unit === 'hours' ? 'workout.hours' : 'workout.seconds';
+    return this.translationService.instant(key);
   }
 
   onSubmit(): void {

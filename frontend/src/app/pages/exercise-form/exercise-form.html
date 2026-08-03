@@ -1,17 +1,17 @@
 <div class="exercise-form">
-  <h2>{{ isEdit ? 'Edit' : 'New' }} Exercise</h2>
+  <h2>{{ (isEdit ? 'exercise.edit' : 'exercise.new') | translate }}</h2>
 
   <form (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label for="name">Name</label>
+      <label for="name">{{ 'exercise.name' | translate }}</label>
       <input type="text" id="name" [(ngModel)]="exercise.name" name="name" required>
     </div>
 
     <div class="form-group">
-      <label for="muscleGroup">Muscle Group</label>
+      <label for="muscleGroup">{{ 'exercise.muscleGroup' | translate }}</label>
       <select id="muscleGroup" [(ngModel)]="exercise.muscleGroup" name="muscleGroup" required>
         @for (group of muscleGroups; track group) {
-          <option [value]="group">{{ group }}</option>
+          <option [value]="group">{{ 'exercise.groups.' + group | translate }}</option>
         }
       </select>
     </div>
@@ -19,24 +19,24 @@
     <div class="form-group checkbox">
       <label>
         <input type="checkbox" [(ngModel)]="exercise.isDuration" name="isDuration">
-        Duration-based (timed)
+        {{ 'exercise.durationBased' | translate }}
       </label>
     </div>
 
     @if (exercise.isDuration) {
       <div class="form-group">
-        <label for="durationUnit">Duration Unit</label>
+        <label for="durationUnit">{{ 'exercise.durationUnit' | translate }}</label>
         <select id="durationUnit" [(ngModel)]="exercise.durationUnit" name="durationUnit">
-          <option value="seconds">Seconds</option>
-          <option value="minutes">Minutes</option>
-          <option value="hours">Hours</option>
+          <option value="seconds">{{ 'workout.seconds' | translate }}</option>
+          <option value="minutes">{{ 'workout.minutes' | translate }}</option>
+          <option value="hours">{{ 'workout.hours' | translate }}</option>
         </select>
       </div>
     }
 
     <div class="form-actions">
-      <button type="submit" class="btn">{{ isEdit ? 'Update' : 'Create' }}</button>
-      <a routerLink="/exercises" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn">{{ (isEdit ? 'common.update' : 'common.create') | translate }}</button>
+      <a routerLink="/exercises" class="btn btn-secondary">{{ 'common.cancel' | translate }}</a>
     </div>
   </form>
 </div>

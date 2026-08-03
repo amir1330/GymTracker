@@ -1,28 +1,39 @@
 <div class="settings">
-  <h2>Account</h2>
+  <h2>{{ 'settings.title' | translate }}</h2>
 
   <div class="settings-section">
-    <h3>Profile</h3>
+    <h3>{{ 'settings.profile' | translate }}</h3>
     <div class="profile-info">
-      <p><strong>Email:</strong> {{ email }}</p>
+      <p><strong>{{ 'settings.email' | translate }}:</strong> {{ email }}</p>
     </div>
   </div>
 
   <div class="settings-section">
-    <h3>Appearance</h3>
+    <h3>{{ 'settings.appearance' | translate }}</h3>
     <div class="form-group">
-      <label>Theme</label>
+      <label>{{ 'settings.theme' | translate }}</label>
       <div class="theme-toggle">
-        <button (click)="setTheme('auto')" class="btn" [class.btn-primary]="theme==='auto'">Auto</button>
-        <button (click)="setTheme('dark')" class="btn" [class.btn-primary]="theme==='dark'">Dark</button>
-        <button (click)="setTheme('light')" class="btn" [class.btn-primary]="theme==='light'">Light</button>
+        <button (click)="setTheme('auto')" class="btn" [class.btn-primary]="theme==='auto'">{{ 'settings.themeAuto' | translate }}</button>
+        <button (click)="setTheme('dark')" class="btn" [class.btn-primary]="theme==='dark'">{{ 'settings.themeDark' | translate }}</button>
+        <button (click)="setTheme('light')" class="btn" [class.btn-primary]="theme==='light'">{{ 'settings.themeLight' | translate }}</button>
       </div>
     </div>
   </div>
 
   <div class="settings-section">
-    <h3>Account</h3>
-    <button (click)="authService.logout()" class="btn btn-danger">Logout</button>
+    <h3>{{ 'settings.language' | translate }}</h3>
+    <div class="form-group">
+      <select [ngModel]="language" (ngModelChange)="setLanguage($event)" name="language">
+        <option value="kz">{{ 'settings.languageKz' | translate }}</option>
+        <option value="ru">{{ 'settings.languageRu' | translate }}</option>
+        <option value="en">{{ 'settings.languageEn' | translate }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>{{ 'settings.account' | translate }}</h3>
+    <button (click)="authService.logout()" class="btn btn-danger">{{ 'settings.logout' | translate }}</button>
   </div>
 
   @if (success) {

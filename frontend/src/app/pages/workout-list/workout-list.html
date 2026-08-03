@@ -1,13 +1,13 @@
 <div class="workout-list">
   <div class="header">
-    <h2>Log</h2>
-    <a routerLink="/workouts/new" class="btn">New Workout</a>
+    <h2>{{ 'workout.title' | translate }}</h2>
+    <a routerLink="/workouts/new" class="btn">{{ 'workout.new' | translate }}</a>
   </div>
 
   @if (loading) {
-    <p>Loading...</p>
+    <p>{{ 'common.loading' | translate }}</p>
   } @else if (workouts.length === 0) {
-    <p class="empty">No workouts yet. Start logging your training.</p>
+    <p class="empty">{{ 'workout.empty' | translate }}</p>
   } @else {
     <div class="workouts-list">
       @for (workout of workouts; track workout.id) {
@@ -15,7 +15,7 @@
           <div class="workout-header">
             <span class="workout-date">{{ formatDate(workout.date) }}</span>
             @if (workout.bodyWeight) {
-              <span class="body-weight">{{ workout.bodyWeight }} kg</span>
+              <span class="body-weight">{{ workout.bodyWeight }} {{ 'common.kg' | translate }}</span>
             }
           </div>
 
@@ -30,8 +30,8 @@
           </div>
 
           <div class="workout-actions">
-            <a [routerLink]="['/workouts', workout.id, 'edit']" class="btn btn-secondary">Edit</a>
-            <button (click)="deleteWorkout(workout.id)" class="btn btn-danger">Delete</button>
+            <a [routerLink]="['/workouts', workout.id, 'edit']" class="btn btn-secondary">{{ 'common.edit' | translate }}</a>
+            <button (click)="deleteWorkout(workout.id)" class="btn btn-danger">{{ 'common.delete' | translate }}</button>
           </div>
         </div>
       }

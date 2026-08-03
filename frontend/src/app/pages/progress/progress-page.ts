@@ -1,13 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardChart } from '../../models/dashboard.model';
 import { ChartTile } from '../../components/chart-tile/chart-tile';
 import { ChartEditor } from '../../components/chart-editor/chart-editor';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-progress-page',
   standalone: true,
-  imports: [ChartTile, ChartEditor],
+  imports: [ChartTile, ChartEditor, TranslatePipe],
   templateUrl: './progress-page.html',
   styleUrl: './progress-page.css'
 })
@@ -20,7 +22,8 @@ export class ProgressPage implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -66,7 +69,8 @@ export class ProgressPage implements OnInit {
   }
 
   deleteChart(chart: DashboardChart): void {
-    if (confirm(`Delete "${chart.label}"?`)) {
+    const message = this.translationService.instant('common.confirmDelete', { item: chart.label });
+    if (confirm(message)) {
       this.dashboardService.delete(chart.id).subscribe(() => this.loadDashboard());
     }
   }

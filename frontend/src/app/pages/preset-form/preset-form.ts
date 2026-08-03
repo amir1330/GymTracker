@@ -1,15 +1,17 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PresetService } from '../../services/preset.service';
 import { Preset, PresetExercise } from '../../models/preset.model';
 import { ExerciseService } from '../../services/exercise.service';
 import { Exercise } from '../../models/exercise.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-preset-form',
   standalone: true,
-  imports: [FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule, TranslatePipe],
   templateUrl: './preset-form.html'
 })
 export class PresetForm implements OnInit {
@@ -25,7 +27,8 @@ export class PresetForm implements OnInit {
     private exerciseService: ExerciseService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +63,11 @@ export class PresetForm implements OnInit {
 
   removeExercise(index: number): void {
     this.preset.presetExercises?.splice(index, 1);
+  }
+
+  durationUnitLabel(unit?: string): string {
+    const key = unit === 'minutes' ? 'workout.minutes' : unit === 'hours' ? 'workout.hours' : 'workout.seconds';
+    return this.translationService.instant(key);
   }
 
   getExercise(exerciseId?: number): Exercise | undefined {

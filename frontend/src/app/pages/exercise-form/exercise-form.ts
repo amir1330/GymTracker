@@ -1,13 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ExerciseService } from '../../services/exercise.service';
 import { Exercise } from '../../models/exercise.model';
 
 @Component({
   selector: 'app-exercise-form',
   standalone: true,
-  imports: [FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule, TranslatePipe],
   templateUrl: './exercise-form.html'
 })
 export class ExerciseForm implements OnInit {

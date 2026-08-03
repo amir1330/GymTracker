@@ -1,12 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ExerciseService } from '../../services/exercise.service';
 import { Exercise } from '../../models/exercise.model';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-exercise-list',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, TranslatePipe],
   templateUrl: './exercise-list.html',
   styleUrls: ['./exercise-list.css']
 })
@@ -14,7 +16,11 @@ export class ExerciseList implements OnInit {
   exercises: Exercise[] = [];
   loading = true;
 
-  constructor(private exerciseService: ExerciseService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private exerciseService: ExerciseService,
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
+  ) {}
 
   ngOnInit(): void {
     this.loadExercises();
@@ -30,7 +36,8 @@ export class ExerciseList implements OnInit {
   }
 
   deleteExercise(id: number): void {
-    if (confirm('Are you sure you want to delete this exercise?')) {
+    const message = this.translationService.instant('common.confirmDelete', { item: this.translationService.instant('exercise.title') });
+    if (confirm(message)) {
       this.exerciseService.delete(id).subscribe(() => this.loadExercises());
     }
   }

@@ -1,31 +1,31 @@
 @if (visible) {
   <div class="onboarding-overlay">
     <div class="onboarding-card">
-      <h2>Welcome to [gym]</h2>
+      <h2>{{ 'onboarding.title' | translate }}</h2>
       <div class="steps">
         <div class="step">
           <span class="step-num">01</span>
           <div class="step-content">
-            <h3>Create Preset</h3>
-            <p>Save your favorite workout routines as reusable presets.</p>
+            <h3>{{ 'onboarding.step1Title' | translate }}</h3>
+            <p>{{ 'onboarding.step1Text' | translate }}</p>
           </div>
         </div>
         <div class="step">
           <span class="step-num">02</span>
           <div class="step-content">
-            <h3>Log Workout</h3>
-            <p>Track your sets, reps, weight, and duration for each session.</p>
+            <h3>{{ 'onboarding.step2Title' | translate }}</h3>
+            <p>{{ 'onboarding.step2Text' | translate }}</p>
           </div>
         </div>
         <div class="step">
           <span class="step-num">03</span>
           <div class="step-content">
-            <h3>Track Progress</h3>
-            <p>Visualize your gains with configurable charts and stats.</p>
+            <h3>{{ 'onboarding.step3Title' | translate }}</h3>
+            <p>{{ 'onboarding.step3Text' | translate }}</p>
           </div>
         </div>
       </div>
-      <button class="btn btn-primary" (click)="dismiss()">Got it</button>
+      <button class="btn btn-primary" (click)="dismiss()">{{ 'onboarding.gotIt' | translate }}</button>
     </div>
   </div>
 }
