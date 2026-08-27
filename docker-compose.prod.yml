@@ -1,3 +1,7 @@
+# Project name pinned so the volume stays gym-tracker_postgres_data
+# even after the app dir moves off /root/gym-tracker.
+name: gym-tracker
+
 services:
   gym-tracker:
     image: ghcr.io/amir1330/gymtracker:latest
