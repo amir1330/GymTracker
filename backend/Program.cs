@@ -79,6 +79,9 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<GymDbContext>();
     context.Database.Migrate();
+    // Idempotent repair if migration history and schema diverged (e.g. after partial deploy).
+    context.Database.ExecuteSqlRaw(
+        """ALTER TABLE "UserSettings" ADD COLUMN IF NOT EXISTS "Language" text NOT NULL DEFAULT 'en';""");
     SeedData.Initialize(context);
 }
 

@@ -20,7 +20,8 @@
     "emailRequired": "Email and password are required",
     "passwordsMismatch": "Passwords do not match",
     "loginFailed": "Login failed",
-    "registrationFailed": "Registration failed"
+    "registrationFailed": "Registration failed",
+    "serverUnreachable": "Cannot reach the server. Make sure the backend is running (npm start)."
   },
   "settings": {
     "title": "Account",

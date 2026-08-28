@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
+import { getAuthErrorMessage } from '../../utils/auth-error';
 
 @Component({
   selector: 'app-register',
@@ -43,16 +44,7 @@ export class Register {
     }).subscribe({
       next: () => this.router.navigate(['/workouts']),
       error: (err) => {
-        const body = err.error;
-        if (typeof body === 'string') {
-          this.error = body;
-        } else if (body?.message) {
-          this.error = body.message;
-        } else if (Array.isArray(body)) {
-          this.error = body.map((e: any) => e.description).join('. ');
-        } else {
-          this.error = this.translationService.instant('auth.registrationFailed');
-        }
+        this.error = getAuthErrorMessage(err, this.translationService, 'auth.registrationFailed');
         this.cdr.markForCheck();
       }
     });

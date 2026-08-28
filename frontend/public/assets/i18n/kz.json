@@ -20,7 +20,8 @@
     "emailRequired": "Email және құпия сөзді енгізіңіз",
     "passwordsMismatch": "Құпия сөздер сәйкес келмейді",
     "loginFailed": "Кіру қатесі",
-    "registrationFailed": "Тіркелу қатесі"
+    "registrationFailed": "Тіркелу қатесі",
+    "serverUnreachable": "Серверге қосылу мүмкін емес. Backend іске қосылғанын тексеріңіз (npm start)."
   },
   "settings": {
     "title": "Аккаунт",

@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
+import { getAuthErrorMessage } from '../../utils/auth-error';
 
 @Component({
   selector: 'app-login',
@@ -33,14 +34,7 @@ export class Login {
     this.authService.login({ email, password: this.password }).subscribe({
       next: () => this.router.navigate(['/workouts']),
       error: (err) => {
-        const body = err.error;
-        if (typeof body === 'string') {
-          this.error = body;
-        } else if (body?.message) {
-          this.error = body.message;
-        } else {
-          this.error = this.translationService.instant('auth.loginFailed');
-        }
+        this.error = getAuthErrorMessage(err, this.translationService, 'auth.loginFailed');
         this.cdr.markForCheck();
       }
     });

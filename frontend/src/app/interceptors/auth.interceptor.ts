@@ -5,6 +5,10 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (!req.url.startsWith('/api')) {
+    return next(req);
+  }
+
   if (req.url.includes('/api/auth/')) {
     return next(req);
   }
