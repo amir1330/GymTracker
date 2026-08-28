@@ -19,6 +19,7 @@
     "hasAccount": "Уже есть аккаунт?",
     "emailRequired": "Введите email и пароль",
     "passwordsMismatch": "Пароли не совпадают",
+    "passwordTooShort": "Пароль должен быть не короче 8 символов",
     "loginFailed": "Ошибка входа",
     "registrationFailed": "Ошибка регистрации",
     "serverUnreachable": "Не удалось связаться с сервером. Убедитесь, что backend запущен (npm start)."

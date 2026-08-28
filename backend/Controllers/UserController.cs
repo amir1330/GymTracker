@@ -25,8 +25,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetSettings()
     {
         var userId = int.Parse(_userManager.GetUserId(User)!);
-        var settings = await _userService.GetSettingsAsync(userId);
-        if (settings == null) return NotFound();
+        var settings = await _userService.GetOrCreateSettingsAsync(userId);
 
         return Ok(new { theme = settings.Theme, language = settings.Language });
     }

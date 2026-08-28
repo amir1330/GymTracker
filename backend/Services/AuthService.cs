@@ -24,8 +24,8 @@ public class AuthService
         if (request.Password != request.ConfirmPassword)
             return (false, null, null, "Passwords do not match");
 
-        if (request.Password.Length < 6)
-            return (false, null, null, "Password must be at least 6 characters");
+        if (request.Password.Length < 8)
+            return (false, null, null, "Password must be at least 8 characters");
 
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
@@ -40,6 +40,9 @@ public class AuthService
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
+            if (result.Errors.All(e => e.Code.StartsWith("Password", StringComparison.Ordinal)))
+                return (false, null, null, "Password must be at least 8 characters");
+
             var errorMessages = string.Join(". ", result.Errors.Select(e => e.Description));
             return (false, null, null, errorMessages);
         }

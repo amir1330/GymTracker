@@ -31,8 +31,12 @@ export class Login {
       this.error = this.translationService.instant('auth.emailRequired');
       return;
     }
+    if (this.password.length < 8) {
+      this.error = this.translationService.instant('auth.passwordTooShort');
+      return;
+    }
     this.authService.login({ email, password: this.password }).subscribe({
-      next: () => this.router.navigate(['/workouts']),
+      next: () => this.router.navigate(['/progress']),
       error: (err) => {
         this.error = getAuthErrorMessage(err, this.translationService, 'auth.loginFailed');
         this.cdr.markForCheck();

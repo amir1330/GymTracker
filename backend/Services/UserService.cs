@@ -17,6 +17,25 @@ public class UserService
         _mapper = mapper;
     }
 
+    public async Task<UserSettings> GetOrCreateSettingsAsync(int userId)
+    {
+        var settings = await _context.UserSettings
+            .FirstOrDefaultAsync(s => s.UserId == userId);
+
+        if (settings != null)
+            return settings;
+
+        settings = new UserSettings
+        {
+            UserId = userId,
+            Theme = "auto",
+            Language = "en"
+        };
+        _context.UserSettings.Add(settings);
+        await _context.SaveChangesAsync();
+        return settings;
+    }
+
     public async Task<UserSettings?> GetSettingsAsync(int userId)
     {
         return await _context.UserSettings

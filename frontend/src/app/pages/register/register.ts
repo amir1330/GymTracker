@@ -36,13 +36,17 @@ export class Register {
       this.error = this.translationService.instant('auth.passwordsMismatch');
       return;
     }
+    if (this.password.length < 8) {
+      this.error = this.translationService.instant('auth.passwordTooShort');
+      return;
+    }
     this.authService.register({
       email,
       password: this.password,
       confirmPassword: this.confirmPassword,
       language: this.translationService.getCurrentLanguage()
     }).subscribe({
-      next: () => this.router.navigate(['/workouts']),
+      next: () => this.router.navigate(['/progress']),
       error: (err) => {
         this.error = getAuthErrorMessage(err, this.translationService, 'auth.registrationFailed');
         this.cdr.markForCheck();

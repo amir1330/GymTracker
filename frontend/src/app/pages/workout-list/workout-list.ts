@@ -27,10 +27,16 @@ export class WorkoutList implements OnInit {
 
   loadWorkouts(): void {
     this.loading = true;
-    this.workoutService.getAll().subscribe(workouts => {
-      this.workouts = workouts;
-      this.loading = false;
-      this.cdr.markForCheck();
+    this.workoutService.getAll().subscribe({
+      next: workouts => {
+        this.workouts = workouts;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 

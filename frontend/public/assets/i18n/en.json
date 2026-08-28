@@ -19,6 +19,7 @@
     "hasAccount": "Already have an account?",
     "emailRequired": "Email and password are required",
     "passwordsMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
     "loginFailed": "Login failed",
     "registrationFailed": "Registration failed",
     "serverUnreachable": "Cannot reach the server. Make sure the backend is running (npm start)."

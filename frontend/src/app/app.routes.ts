@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/progress', pathMatch: 'full' },
-  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.Login) },
-  { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.Register) },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.Login), canActivate: [guestGuard] },
+  { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.Register), canActivate: [guestGuard] },
   { path: 'workouts', loadComponent: () => import('./pages/workout-list/workout-list').then(m => m.WorkoutList), canActivate: [authGuard] },
   { path: 'workouts/new', loadComponent: () => import('./pages/workout-form/workout-form').then(m => m.WorkoutForm), canActivate: [authGuard] },
   { path: 'workouts/:id/edit', loadComponent: () => import('./pages/workout-form/workout-form').then(m => m.WorkoutForm), canActivate: [authGuard] },

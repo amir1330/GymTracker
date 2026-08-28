@@ -19,6 +19,7 @@
     "hasAccount": "Аккаунтыңыз бар ма?",
     "emailRequired": "Email және құпия сөзді енгізіңіз",
     "passwordsMismatch": "Құпия сөздер сәйкес келмейді",
+    "passwordTooShort": "Құпия сөз кемінде 8 таңбадан тұруы керек",
     "loginFailed": "Кіру қатесі",
     "registrationFailed": "Тіркелу қатесі",
     "serverUnreachable": "Серверге қосылу мүмкін емес. Backend іске қосылғанын тексеріңіз (npm start)."

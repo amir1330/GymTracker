@@ -32,10 +32,16 @@ export class ProgressPage implements OnInit {
 
   loadDashboard(): void {
     this.loading = true;
-    this.dashboardService.getAll().subscribe(charts => {
-      this.charts = charts;
-      this.loading = false;
-      this.cdr.markForCheck();
+    this.dashboardService.getAll().subscribe({
+      next: charts => {
+        this.charts = charts;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 
