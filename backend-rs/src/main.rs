@@ -411,7 +411,7 @@ async fn e_create(
                 )
                     .into_response();
             }
-            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"Exercises\" (\"Name\",\"MuscleGroup\",\"IsDuration\",\"UserId\") VALUES ($1,$2,$3,$4) RETURNING \"Id\"").bind(b["name"].as_str().unwrap_or("")).bind(b["muscleGroup"].as_str().unwrap_or("")).bind(b["isDuration"].as_bool().unwrap_or(false)).bind(u).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("e_create insert failed: {e}"); None });
+            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"Exercises\" (\"Name\",\"MuscleGroup\",\"IsDuration\",\"UserId\",\"IsDefault\") VALUES ($1,$2,$3,$4,false) RETURNING \"Id\"").bind(b["name"].as_str().unwrap_or("")).bind(b["muscleGroup"].as_str().unwrap_or("")).bind(b["isDuration"].as_bool().unwrap_or(false)).bind(u).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("e_create insert failed: {e}"); None });
             match r {
                 Some((id,)) => {
                     (StatusCode::CREATED, Json(serde_json::json!({"id":id}))).into_response()
