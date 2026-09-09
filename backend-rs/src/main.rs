@@ -155,9 +155,12 @@ async fn main() {
             .and_then(|p| p.parse().ok())
             .unwrap_or(8000),
     ));
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
-        .await
-        .unwrap();
+    axum::serve(
+        tokio::net::TcpListener::bind(addr).await.unwrap(),
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }
 
 async fn login(State(s): State<Arc<App>>, Json(b): Json<Login>) -> impl IntoResponse {
