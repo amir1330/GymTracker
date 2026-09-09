@@ -17,3 +17,5 @@ db/data/
 db/run/
 db/logs/
 *.tar.gz
+target/
+backend/Cargo.lock

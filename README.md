@@ -1,6 +1,6 @@
 # GymTracker
 
-Web app to track gym progress.
+Web app to track gym progress. Stack: **Rust Axum** backend + **SvelteKit** frontend + **PostgreSQL** (+PgBouncer) + **Caddy**. Alpine/distroless images, monolith, no Redis.
 
 Live: [gym.abuyunus.cc](https://gym.abuyunus.cc) · [Actions](https://github.com/amir1330/GymTracker/actions)
 
