@@ -321,7 +321,7 @@ async fn w_create(
 ) -> impl IntoResponse {
     match need_auth(&h, &s) {
         Ok(u) => {
-            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"Workouts\" (\"UserId\",\"Date\",\"Notes\",\"BodyWeight\") VALUES ($1,$2,$3,$4) RETURNING \"Id\"").bind(u).bind(b["date"].as_str().unwrap_or("now()")).bind(b["notes"].as_str()).bind(b["bodyWeight"].as_f64()).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("w_create failed: {e}"); None });
+            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"Workouts\" (\"UserId\",\"Date\",\"Notes\",\"BodyWeight\") VALUES ($1,$2::timestamptz,$3,$4) RETURNING \"Id\"").bind(u).bind(b["date"].as_str().unwrap_or("now()")).bind(b["notes"].as_str()).bind(b["bodyWeight"].as_f64()).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("w_create failed: {e}"); None });
             match r {
                 Some((id,)) => {
                     (StatusCode::CREATED, Json(serde_json::json!({"id":id}))).into_response()
@@ -341,7 +341,7 @@ async fn w_upd(
 ) -> impl IntoResponse {
     match need_auth(&h, &s) {
         Ok(u) => {
-            let r = sqlx::query("UPDATE \"Workouts\" SET \"Date\"=COALESCE($1,\"Date\"),\"Notes\"=$2,\"BodyWeight\"=$3 WHERE \"Id\"=$4 AND \"UserId\"=$5").bind(b["date"].as_str()).bind(b["notes"].as_str()).bind(b["bodyWeight"].as_f64()).bind(id).bind(u).execute(&s.pool).await;
+            let r = sqlx::query("UPDATE \"Workouts\" SET \"Date\"=COALESCE($1::timestamptz,\"Date\"),\"Notes\"=$2,\"BodyWeight\"=$3 WHERE \"Id\"=$4 AND \"UserId\"=$5").bind(b["date"].as_str()).bind(b["notes"].as_str()).bind(b["bodyWeight"].as_f64()).bind(id).bind(u).execute(&s.pool).await;
             match r {
                 Ok(v) if v.rows_affected() > 0 => (StatusCode::OK, Json(b)).into_response(),
                 Ok(_) => (StatusCode::NOT_FOUND, Json(serde_json::json!({}))).into_response(),
