@@ -1,9 +1,8 @@
-{
-  email you@abuyunus.cc
-}
-gym.abuyunus.cc:8443 {
-  reverse_proxy /api/* backend:8000
-  reverse_proxy frontend:3000
-  header { X-Content-Type-Options nosniff }
+# NOTE: prod uses shared /opt/caddy/Caddyfile on VPS (single Caddy for all
+# domains). This file mirrors the gym block there for reference.
+# Shared Caddy: complmar-rs-caddy-1, networks [web]. Traefik kept Exited.
+gym.abuyunus.cc {
+  reverse_proxy /api/* gymtracker-rs-backend-1:8000
+  reverse_proxy gymtracker-rs-frontend-1:3000
   encode gzip
 }

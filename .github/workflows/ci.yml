@@ -69,39 +69,6 @@ jobs:
             ${{ steps.meta.outputs.image }}-frontend:latest
             ${{ steps.meta.outputs.image }}-frontend:${{ github.sha }}
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    concurrency:
-      group: gymtracker-prod
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
-
-      # Hardened path: non-root user + forced-command key.
-      # stdin protocol: GHCR_USER\nGHCR_TOKEN\n + tar(cz) of compose/scripts
-      # remote forced command: sync-deploy → ci-entry.sh
-      - name: Sync and recreate over restricted SSH
-        env:
-          HOST: ${{ secrets.HOST }}
-          USERNAME: ${{ secrets.USERNAME }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USER: ${{ github.actor }}
-        run: |
-          set -euo pipefail
-          install -m 600 /dev/null "${RUNNER_TEMP}/deploy_key"
-          printf '%s\n' "$SSH_KEY" > "${RUNNER_TEMP}/deploy_key"
-          {
-            printf '%s\n' "$GHCR_USER"
-            printf '%s\n' "$GHCR_TOKEN"
-            tar czf - docker-compose.prod.yml deploy/remote.sh deploy/ci-entry.sh
-          } | ssh -i "${RUNNER_TEMP}/deploy_key" \
-            -o IdentitiesOnly=yes \
-            -o UserKnownHostsFile=.github/known_hosts \
-            -o StrictHostKeyChecking=yes \
-            -o BatchMode=yes \
-            "${USERNAME}@${HOST}" sync-deploy
+  # deploy disabled: legacy docker-compose.prod.yml (.NET/Angular) resurrected
+  # gym-tracker on every push. New Rust+Svelte stack deploys manually via
+  # /home/gymtracker/gym-tracker-rs until a new workflow is written.
