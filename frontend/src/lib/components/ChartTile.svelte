@@ -1,6 +1,7 @@
 <script>
   export let points=[];
   export let label='';
+  export let meta='';
   import { onMount } from 'svelte';
   let cv;
   onMount(()=>{
@@ -19,4 +20,7 @@
     ctx.stroke();
   });
 </script>
-<div><b>{label}</b><br /><canvas bind:this={cv} width="300" height="120"></canvas></div>
+<div class="chart-tile-card">
+  <div class="tile-header"><div class="tile-label">{label}</div>{#if meta}<div class="tile-meta">{meta}</div>{/if}</div>
+  <div class="tile-chart"><canvas bind:this={cv} width="300" height="160"></canvas></div>
+</div>
