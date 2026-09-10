@@ -8,10 +8,12 @@
     const r=await fetch('/api/Dashboard',{headers:{Authorization:'Bearer '+tok}});
     if(!r.ok){ loading=false; return; }
     const list=await r.json();
-    charts=await Promise.all(list.map(async c=>{
-      const d=await fetch('/api/Stats/chart-data',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({period:c.Period||c.period||'30d',metric:c.Metric||c.metric||'volume',exerciseId:c.ExerciseId||c.exerciseId||null})}).then(x=>x.json()).catch(()=>({points:[]})));
-      return {...c,points:d.points||[]};
-    }));
+    const out=[];
+    for(const c of list){
+      const d=await fetch('/api/Stats/chart-data',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({period:c.Period||'30d',metric:c.Metric||'volume',exerciseId:c.ExerciseId||null})}).then(x=>x.json()).catch(()=>({points:[]}));
+      out.push({label:c.Label,points:d.points||[]});
+    }
+    charts=out;
     loading=false;
   }
   onMount(load);
