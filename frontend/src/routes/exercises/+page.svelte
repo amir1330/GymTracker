@@ -6,6 +6,15 @@
     const r=await fetch('/api/Exercises',{headers:{Authorization:'Bearer '+t}});
     if(r.ok) items=await r.json();
   });
+  async function del(id){
+    const t=localStorage.getItem('jwt');
+    await fetch(`/api/Exercises/${id}`,{method:'DELETE',headers:{Authorization:'Bearer '+t}});
+    items=items.filter(e=>(e.Id||e.id)!==id);
+  }
 </script>
-<h1>exercises</h1>
-{#each items as e}<div>{e.Name||e.name} — {e.MuscleGroup||e.muscleGroup||''}</div>{/each}
+<div class="header"><h2>exercises</h2><a class="btn btn-primary" href="/exercises/new">new</a></div>
+<div class="table-container"><table>
+<tr><th>name</th><th>muscle</th><th class="actions">actions</th></tr>
+{#each items as e}<tr><td>{e.name||e.Name}</td><td class="muted">{e.muscleGroup||e.MuscleGroup||''}</td><td class="actions"><a class="btn btn-small btn-secondary" href={`/exercises/${e.Id||e.id}/edit`}>edit</a> <button class="btn btn-small btn-danger" on:click={()=>del(e.Id||e.id)}>del</button></td></tr>{/each}
+</table></div>
+{#if !items.length}<p class="empty">no exercises yet</p>{/if}

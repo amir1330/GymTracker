@@ -1,4 +1,5 @@
 <script>
+  import '../app.css';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -10,15 +11,13 @@
   });
   function logout() { localStorage.removeItem('jwt'); goto('/login'); }
 </script>
-<style>
-  :root{--bg:#282828;--fg:#ebdbb2;--green:#b8bb26;--blue:#83a598}
-  nav{display:flex;gap:12px;padding:10px;background:#1d2021;font-family:monospace}
-  a{color:var(--blue);text-decoration:none}
-  main{max-width:900px;margin:0 auto;padding:12px;font-family:monospace}
-</style>
-<nav>
-  <a href="/progress">progress</a><a href="/workouts">workouts</a><a href="/exercises">exercises</a><a href="/presets">presets</a><a href="/settings">settings</a>
-  <span style="flex:1"></span>
-  {#if token}<a href="#" on:click|preventDefault={logout}>logout</a>{:else}<a href="/login">login</a>{/if}
+<div class="app">
+<nav class="nav">
+  <div class="nav-brand"><a class="brand" href="/progress">gym</a></div>
+  <div class="nav-links">
+    <a class="nav-link" href="/progress">progress</a><a class="nav-link" href="/workouts">workouts</a><a class="nav-link" href="/exercises">exercises</a><a class="nav-link" href="/presets">presets</a><a class="nav-link" href="/settings">settings</a>
+  </div>
+  {#if token}<a class="nav-link" href="#" on:click|preventDefault={logout}>logout</a>{:else}<a class="nav-link" href="/login">login</a>{/if}
 </nav>
-<main><slot /></main>
+<main class="main"><slot /></main>
+</div>

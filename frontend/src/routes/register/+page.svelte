@@ -9,11 +9,13 @@
     localStorage.setItem('jwt', j.token); goto('/progress');
   }
 </script>
-<h1>register</h1>
+<div class="auth-container"><div class="auth-box">
+<h2>register</h2>
 <form on:submit={submit}>
-  <input bind:value={email} placeholder="email" required />
-  <input bind:value={password} type="password" placeholder="password" required />
-  <button>create</button>
-  <p style="color:red">{err}</p>
+  <div class="form-group"><label>email</label><input bind:value={email} placeholder="email" required /></div>
+  <div class="form-group"><label>password</label><input bind:value={password} type="password" placeholder="password (8+ chars)" required /></div>
+  {#if err}<p class="error">{err}</p>{/if}
+  <div class="form-actions"><button class="btn btn-primary">create</button></div>
 </form>
-<a href="/login">login</a>
+<p class="switch-link"><a href="/login">login</a></p>
+</div></div>
