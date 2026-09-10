@@ -27,7 +27,7 @@
     <div class="section-header"><span>exercises</span><button type="button" class="btn btn-small btn-secondary" on:click={add}>+ add</button></div>
     {#each items as it,i}<div class="exercise-entry">
       <select bind:value={it.exerciseId}>{#each exercises as e}<option value={e.Id||e.id}>{e.Name||e.Name}</option>{/each}</select>
-      <input type="number" bind:value={it.sets} placeholder="sets" /><input type="number" bind:value={it.reps} placeholder="reps" /><input type="number" step="0.1" bind:value={it.weight} placeholder="kg" />
+      <input type="number" min="1" bind:value={it.sets} placeholder="sets" /><input type="number" min="1" bind:value={it.reps} placeholder="reps" /><input type="number" step="0.1" bind:value={it.weight} placeholder="kg" />
       <button type="button" class="btn btn-small btn-danger" on:click={()=>items=items.filter((_,j)=>j!==i)}>x</button>
     </div>{/each}
   </div>
