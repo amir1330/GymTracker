@@ -14,7 +14,7 @@
 </script>
 <div class="header"><h2>exercises</h2><a class="btn btn-primary" href="/exercises/new">new</a></div>
 <div class="table-container"><table>
-<tr><th>name</th><th>muscle</th><th class="actions">actions</th></tr>
-{#each items as e}<tr><td>{e.name||e.Name}</td><td class="muted">{e.muscleGroup||e.MuscleGroup||''}</td><td class="actions"><a class="btn btn-small btn-secondary" href={`/exercises/${e.Id||e.id}/edit`}>edit</a> <button class="btn btn-small btn-danger" on:click={()=>del(e.Id||e.id)}>del</button></td></tr>{/each}
+<thead><tr><th>name</th><th>muscle</th><th class="actions">actions</th></tr></thead>
+<tbody>{#each items as e}<tr><td>{e.name||e.Name}</td><td class="muted">{e.muscleGroup||e.MuscleGroup||''}</td><td class="actions"><a class="btn btn-small btn-secondary" href={`/exercises/${e.Id||e.id}/edit`}>edit</a> <button class="btn btn-small btn-danger" on:click={()=>del(e.Id||e.id)}>del</button></td></tr>{/each}</tbody>
 </table></div>
 {#if !items.length}<p class="empty">no exercises yet</p>{/if}
