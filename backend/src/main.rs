@@ -516,6 +516,19 @@ async fn p_create(
             });
             match r {
                 Some((id,)) => {
+                    if let Some(items) = b.get("exercises").and_then(|v| v.as_array()) {
+                        for it in items {
+                            let _ = sqlx::query("INSERT INTO \"PresetExercises\" (\"PresetId\",\"ExerciseId\",\"DefaultSets\",\"DefaultReps\",\"DefaultWeight\",\"DefaultDuration\") VALUES ($1,$2,$3,$4,$5,$6)")
+                                .bind(id)
+                                .bind(it.get("exerciseId").and_then(|v| v.as_i64()).unwrap_or(0) as i32)
+                                .bind(it.get("defaultSets").and_then(|v| v.as_i64()).unwrap_or(3) as i32)
+                                .bind(it.get("defaultReps").and_then(|v| v.as_i64()).unwrap_or(10) as i32)
+                                .bind(it.get("defaultWeight").and_then(|v| v.as_f64()))
+                                .bind(it.get("defaultDuration").and_then(|v| v.as_i64()).map(|v| v as i32))
+                                .execute(&s.pool).await
+                                .map_err(|e| tracing::error!("p_create items failed: {e}"));
+                        }
+                    }
                     (StatusCode::CREATED, Json(serde_json::json!({"id":id}))).into_response()
                 }
                 None => (StatusCode::BAD_REQUEST, Json(serde_json::json!({}))).into_response(),
