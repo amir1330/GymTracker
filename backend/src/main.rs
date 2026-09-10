@@ -588,7 +588,9 @@ async fn d_create(
 ) -> impl IntoResponse {
     match need_auth(&h, &s) {
         Ok(u) => {
-            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"DashboardCharts\" (\"UserId\",\"Label\",\"Metric\") VALUES ($1,$2,$3) RETURNING \"Id\"").bind(u).bind(b["label"].as_str().unwrap_or("")).bind(b["metric"].as_str().unwrap_or("")).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("d_create failed: {e}"); None });
+            let maxpos: Option<(i32,)> = sqlx::query_as("SELECT COALESCE(MAX(\"Position\"),-1)+1 FROM \"DashboardCharts\" WHERE \"UserId\"=$1").bind(u).fetch_optional(&s.pool).await.unwrap_or(Some((0,)));
+            let pos = maxpos.map(|v| v.0).unwrap_or(0);
+            let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"DashboardCharts\" (\"UserId\",\"Label\",\"Metric\",\"ExerciseId\",\"Period\",\"ChartType\",\"Position\") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING \"Id\"").bind(u).bind(b["label"].as_str().unwrap_or("")).bind(b["metric"].as_str().unwrap_or("")).bind(b["exerciseId"].as_i64().map(|v| v as i32)).bind(b["period"].as_str().unwrap_or("30d")).bind(b["chartType"].as_str().unwrap_or("line")).bind(pos).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("d_create failed: {e}"); None });
             match r {
                 Some((id,)) => {
                     (StatusCode::CREATED, Json(serde_json::json!({"id":id}))).into_response()
