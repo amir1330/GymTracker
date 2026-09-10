@@ -324,6 +324,20 @@ async fn w_create(
             let r: Option<(i32,)> = sqlx::query_as("INSERT INTO \"Workouts\" (\"UserId\",\"Date\",\"Notes\",\"BodyWeight\") VALUES ($1,$2::timestamptz,$3,$4) RETURNING \"Id\"").bind(u).bind(b["date"].as_str().unwrap_or("now()")).bind(b["notes"].as_str()).bind(b["bodyWeight"].as_f64()).fetch_optional(&s.pool).await.unwrap_or_else(|e| { tracing::error!("w_create failed: {e}"); None });
             match r {
                 Some((id,)) => {
+                    if let Some(items) = b.get("exercises").and_then(|v| v.as_array()) {
+                        for it in items {
+                            let _ = sqlx::query("INSERT INTO \"WorkoutExercises\" (\"WorkoutId\",\"ExerciseId\",\"Sets\",\"Reps\",\"Weight\",\"Duration\",\"DurationUnit\") VALUES ($1,$2,$3,$4,$5,$6,$7)")
+                                .bind(id)
+                                .bind(it.get("exerciseId").and_then(|v| v.as_i64()).unwrap_or(0) as i32)
+                                .bind(it.get("sets").and_then(|v| v.as_i64()).unwrap_or(0) as i32)
+                                .bind(it.get("reps").and_then(|v| v.as_i64()).unwrap_or(0) as i32)
+                                .bind(it.get("weight").and_then(|v| v.as_f64()))
+                                .bind(it.get("duration").and_then(|v| v.as_i64()).map(|v| v as i32))
+                                .bind(it.get("durationUnit").and_then(|v| v.as_i64()).unwrap_or(0) as i32)
+                                .execute(&s.pool).await
+                                .map_err(|e| tracing::error!("w_create items failed: {e}"));
+                        }
+                    }
                     (StatusCode::CREATED, Json(serde_json::json!({"id":id}))).into_response()
                 }
                 None => (StatusCode::BAD_REQUEST, Json(serde_json::json!({}))).into_response(),
