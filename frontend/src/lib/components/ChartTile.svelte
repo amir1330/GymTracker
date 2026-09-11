@@ -2,10 +2,11 @@
   export let points=[];
   export let label='';
   export let meta='';
-  import { onMount } from 'svelte';
   let cv;
-  onMount(()=>{
+  function draw(){
+    if(!cv) return;
     const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#665c54'; ctx.fillStyle='#a89984'; ctx.font='10px monospace';
     const W=cv.width,H=cv.height;
     ctx.strokeRect(0.5,0.5,W-1,H-1);
@@ -18,7 +19,8 @@
       i?ctx.lineTo(x,y):ctx.moveTo(x,y);
     });
     ctx.stroke();
-  });
+  }
+  $: if(cv) draw(points);
 </script>
 <div class="chart-tile-card">
   <div class="tile-header"><div class="tile-label">{label}</div>{#if meta}<div class="tile-meta">{meta}</div>{/if}</div>
