@@ -19,3 +19,7 @@ db/logs/
 *.tar.gz
 target/
 backend/Cargo.lock
+
+# IDE / agent tooling (local only, never commit)
+.idea/
+.opencode/
